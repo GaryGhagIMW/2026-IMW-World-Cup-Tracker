@@ -18,7 +18,8 @@ export const GAME_CONFIG = {
    */
   sharepoint: {
     enabled: true,
-    webhookUrl: '', // e.g. https://prod-xx.westus.logic.azure.com/workflows/.../triggers/manual/paths/invoke?...
+    webhookUrl:
+      'https://defaultce489f496a08487cbc9c7d75078824.ea.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b11215c7b719489eb98d80e420ecc2a9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0p7lexnvSJPBp_SqknHYg3wRYPcMojqxMXdRk4TkwYc',
     listName: 'World Cup 2026 Entries',
   },
 
