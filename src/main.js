@@ -1,4 +1,3 @@
-import './styles/main.css';
 import { GAME_CONFIG, getMaxGroupPoints } from './data/config.js';
 import { GROUPS } from './data/groups.js';
 import {
