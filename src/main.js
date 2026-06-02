@@ -30,6 +30,10 @@ import {
   isSharePointConfigured,
   submitToSharePoint,
 } from './lib/sharepoint.js';
+import {
+  fetchLeaderboardEntries,
+  isLeaderboardFetchConfigured,
+} from './lib/leaderboard.js';
 import { assetUrl } from './lib/base.js';
 
 const LOGO_URL = assetUrl('assets/imw-logo.png');
@@ -39,6 +43,34 @@ let activeTab = 'home';
 let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
+let isFetchingLeaderboard = false;
+
+const LEADERBOARD_CACHE_MS = 60_000;
+
+async function refreshLeaderboard(force = false) {
+  if (!isLeaderboardFetchConfigured()) return;
+
+  const fetchedAt = state.leaderboardFetchedAt
+    ? Date.parse(state.leaderboardFetchedAt)
+    : 0;
+  const age = Date.now() - fetchedAt;
+  if (!force && age < LEADERBOARD_CACHE_MS) return;
+  if (isFetchingLeaderboard) return;
+
+  isFetchingLeaderboard = true;
+  if (activeTab === 'leaderboard') render();
+
+  try {
+    state.remoteEntries = await fetchLeaderboardEntries();
+    state.leaderboardFetchedAt = new Date().toISOString();
+    saveState(state);
+  } catch (err) {
+    console.warn('Leaderboard refresh failed:', err);
+  } finally {
+    isFetchingLeaderboard = false;
+    if (activeTab === 'leaderboard') render();
+  }
+}
 
 function ensureEntry() {
   if (!state.entry) {
@@ -284,25 +316,43 @@ function renderKnockoutComingSoon() {
 
 function renderLeaderboard() {
   const results = ensureResults();
-  const entries = getLeaderboardEntries(state.allEntries);
+  const entries = getLeaderboardEntries(state);
+  const hasResults = Object.values(results.groups).some((g) => g.some(Boolean));
+
+  if (!entries.length && isFetchingLeaderboard) {
+    return `
+      <section class="panel empty-state">
+        <h2>Leaderboard — Group stage</h2>
+        <p>Loading entries from OneDrive…</p>
+      </section>`;
+  }
 
   if (!entries.length) {
     return `
       <section class="panel empty-state">
         <h2>Leaderboard — Group stage</h2>
-        <p>No pool entries yet. Submissions will appear here once players submit picks.</p>
+        <p>No pool entries yet. Players appear here after they submit picks.</p>
       </section>`;
   }
 
   const ranked = rankGroupEntries(entries, results);
-  const hasResults = Object.values(results.groups).some((g) => g.some(Boolean));
 
   return `
     <section class="panel">
-      <h2>Leaderboard — Group stage</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+        <h2>Leaderboard — Group stage</h2>
+        <button class="ghost" id="refresh-leaderboard" ${isFetchingLeaderboard ? 'disabled' : ''}>
+          ${isFetchingLeaderboard ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
       ${
         !hasResults
           ? '<p class="muted">Enter actual group results in Admin to calculate scores.</p>'
+          : ''
+      }
+      ${
+        isLeaderboardFetchConfigured()
+          ? `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} · synced from OneDrive</p>`
           : ''
       }
       <table class="score-table">
@@ -497,7 +547,14 @@ function bindEvents() {
     btn.addEventListener('click', () => {
       activeTab = btn.dataset.tab;
       render();
+      if (activeTab === 'leaderboard') {
+        refreshLeaderboard(true);
+      }
     });
+  });
+
+  document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
+    refreshLeaderboard(true);
   });
 
   document.getElementById('save-name')?.addEventListener('click', () => {
@@ -534,8 +591,10 @@ function bindEvents() {
     try {
       await submitToSharePoint(entry);
       state.entry = entry;
+      state.allEntries = addOrUpdateEntry(state.allEntries, entry);
       saveState(state);
       showToast(`Picks submitted — ${entry.name}`);
+      await refreshLeaderboard(true);
     } catch (err) {
       showToast(err.message || 'SharePoint submission failed.', true);
     } finally {
@@ -657,3 +716,4 @@ function bindEvents() {
 }
 
 render();
+refreshLeaderboard(true);

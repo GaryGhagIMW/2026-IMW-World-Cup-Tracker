@@ -72,7 +72,56 @@ sharepoint: {
 },
 ```
 
-Commit and deploy. Players use **Submit to SharePoint** on the Group Stage tab.
+Commit and deploy. Players use **Submit picks** on the Group Stage tab.
+
+## Step 4 — Auto-update the leaderboard (update your existing flow)
+
+The site reads the same OneDrive Excel file to populate the **Leaderboard** for all visitors. Update your **existing submit flow** (same URL — no second flow required):
+
+### A. Update the HTTP trigger schema
+
+Add an optional `action` field to the sample JSON schema:
+
+```json
+{
+  "action": "list",
+  "playerName": "Jane Doe",
+  "playerEmail": "jane.doe@imw.ca"
+}
+```
+
+### B. Add a Condition immediately after the trigger
+
+**Condition:** `action` is equal to `list`
+
+(use Expression: `@equals(triggerBody()?['action'], 'list')`)
+
+### C. If yes (list / leaderboard request)
+
+1. **List rows present in a table** (Excel Online)
+   - Location: OneDrive for Business
+   - File: `/World Cup 2026 Pool/Group Stage Entries.xlsx`
+   - Table: `Entries`
+2. **Response**
+   - Status code: `200`
+   - Body: **Dynamic content** → output from **List rows present in a table** (the `value` array)
+
+### D. If no (submit picks — your existing path)
+
+Keep your existing steps:
+
+1. **Add a row into a table** (same Excel file / `Entries` table)
+2. **Response** → Status `200`, Body `{ "status": "ok" }`
+
+### E. Save the flow
+
+No URL change needed — the app uses the **same webhook URL** for both submit and leaderboard fetch.
+
+When someone submits picks:
+
+1. Row is added to Excel (Power Automate)
+2. They appear on the leaderboard immediately (local + refresh)
+3. Everyone else sees them on next leaderboard load / Refresh
 
 ## Viewing & exporting entries
 
@@ -95,7 +144,8 @@ If IMW IT can register an **Azure AD app** with SharePoint permissions, the site
 | Submit button says URL not configured | Paste webhook URL in `config.js` and redeploy |
 | Browser blocks request (CORS) | Flow still receives `text/plain` POST; add Response action; confirm trigger allows anonymous calls |
 | Duplicate entries | Add a list view sorted by player; enforce one submission per person via honor system or IT Power Automate duplicate check |
-| Need knockout phase later | Same list — `phase` column distinguishes group vs knockout submissions |
+| Leaderboard empty for other users | Add the `action: list` branch to your flow (Step 4 above) |
+| Leaderboard shows only you | Flow list branch missing or Response body not set to Excel rows |
 
 ## Sample flow schema fields
 

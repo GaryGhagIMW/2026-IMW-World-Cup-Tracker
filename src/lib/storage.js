@@ -2,11 +2,16 @@ import { POOL_ENTRIES } from '../data/pool-entries.js';
 
 const STORAGE_KEY = 'imw-wc-2026';
 
-export function getLeaderboardEntries(allEntries = []) {
-  let merged = [...POOL_ENTRIES];
-  for (const entry of allEntries) {
+export function getLeaderboardEntries(state = {}) {
+  const remoteEntries = state.remoteEntries ?? [];
+  const localEntries = state.allEntries ?? [];
+
+  let merged = remoteEntries.length ? [...remoteEntries] : [...POOL_ENTRIES];
+
+  for (const entry of localEntries) {
     merged = addOrUpdateEntry(merged, entry);
   }
+
   return merged;
 }
 
@@ -32,6 +37,8 @@ export function getDefaultState() {
     results: null,
     isAdmin: false,
     allEntries: [],
+    remoteEntries: [],
+    leaderboardFetchedAt: null,
   };
 }
 
