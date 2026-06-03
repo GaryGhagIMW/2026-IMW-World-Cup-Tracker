@@ -113,9 +113,18 @@ Keep your existing steps:
 1. **Add a row into a table** (same Excel file / `Entries` table)
 2. **Response** → Status `200`, Body `{ "status": "ok" }`
 
-### E. Save the flow
+### E. Save the flow and enable live sync
 
-No URL change needed — the app uses the **same webhook URL** for both submit and leaderboard fetch.
+After the list branch works (test with Postman or the flow's **Test** button — you should get a JSON array of rows back):
+
+1. Paste the **same HTTP POST URL** into `leaderboardFetchUrl` in `src/data/config.js`
+2. Commit and deploy
+
+Until then, the leaderboard uses entries synced from OneDrive into `src/data/pool-entries.js` (run `scripts/sync-pool-from-excel.ps1` after adding players in Excel).
+
+### Why blank rows appeared in Excel
+
+If the site sends `{ "action": "list" }` to your submit flow **before** the list branch exists, Power Automate still runs **Add a row** with empty `PlayerName` — one blank row per page visit. Delete those rows in Excel. The app no longer calls the submit URL for leaderboard fetch until `leaderboardFetchUrl` is set.
 
 When someone submits picks:
 

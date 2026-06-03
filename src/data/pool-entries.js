@@ -1,4 +1,4 @@
-import { createEmptyKnockoutPredictions } from '../lib/scoring.js';
+﻿import { createEmptyKnockoutPredictions } from '../lib/scoring.js';
 
 function poolEntry(name, email, groups, updatedAt) {
   return {
@@ -49,7 +49,26 @@ export const POOL_ENTRIES = [
       K: ['COD', 'POR', 'UZB', 'COL'],
       L: ['ENG', 'CRO', 'PAN', 'GHA'],
     },
-    '2026-06-02T09:48:06.000Z'
+    '2026-06-02T16:48:06.000Z'
+  ),
+  poolEntry(
+    'Creigh Sullivan',
+    'creigh.sullivan@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'TUR', 'PAR', 'AUS'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['BEL', 'EGY', 'IRN', 'NZL'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['ARG', 'AUT', 'ALG', 'JOR'],
+      K: ['POR', 'COL', 'UZB', 'COD'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-03T15:46:59.871Z'
   ),
   poolEntry(
     'Gary Ghag',
@@ -87,7 +106,7 @@ export const POOL_ENTRIES = [
       K: ['POR', 'COL', 'COD', 'UZB'],
       L: ['ENG', 'CRO', 'PAN', 'GHA'],
     },
-    '2026-06-02T11:17:48.000Z'
+    '2026-06-02T18:17:48.000Z'
   ),
   poolEntry(
     'Jackson Lau',
@@ -106,6 +125,25 @@ export const POOL_ENTRIES = [
       K: ['COL', 'POR', 'COD', 'UZB'],
       L: ['ENG', 'CRO', 'GHA', 'PAN'],
     },
-    '2026-06-02T08:32:23.000Z'
+    '2026-06-02T15:32:23.000Z'
+  ),
+  poolEntry(
+    'Rahat Williams',
+    'rahat.williams@imw.ca',
+    {
+      A: ['CZE', 'RSA', 'MEX', 'KOR'],
+      B: ['BIH', 'QAT', 'CAN', 'SUI'],
+      C: ['BRA', 'SCO', 'MAR', 'HAI'],
+      D: ['PAR', 'USA', 'TUR', 'AUS'],
+      E: ['CUW', 'CIV', 'GER', 'ECU'],
+      F: ['SWE', 'JPN', 'NED', 'TUN'],
+      G: ['BEL', 'NZL', 'EGY', 'IRN'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['SEN', 'NOR', 'FRA', 'IRQ'],
+      J: ['ARG', 'ALG', 'AUT', 'JOR'],
+      K: ['COL', 'POR', 'COD', 'UZB'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-03T15:47:34.796Z'
   ),
 ];

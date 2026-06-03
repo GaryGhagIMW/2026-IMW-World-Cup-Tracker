@@ -20,7 +20,7 @@ export const GAME_CONFIG = {
     enabled: true,
     webhookUrl:
       'https://defaultce489f496a08487cbc9c7d75078824.ea.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b11215c7b719489eb98d80e420ecc2a9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0p7lexnvSJPBp_SqknHYg3wRYPcMojqxMXdRk4TkwYc',
-    /** Paste URL for the "Get leaderboard" Power Automate flow (see docs/sharepoint-setup.md). */
+    /** Paste URL for the "Get leaderboard" Power Automate flow after Step 4 in docs/sharepoint-setup.md. Leave blank until the list branch is configured — do not use the submit URL here before that. */
     leaderboardFetchUrl: '',
     listName: 'World Cup 2026 Entries',
   },

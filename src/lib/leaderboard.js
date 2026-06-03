@@ -7,9 +7,10 @@ export function isLeaderboardFetchConfigured() {
 }
 
 export function getLeaderboardFetchUrl() {
-  const dedicated = GAME_CONFIG.sharepoint.leaderboardFetchUrl?.trim();
-  if (dedicated) return dedicated;
-  return GAME_CONFIG.sharepoint.webhookUrl?.trim() || '';
+  // Only use a dedicated fetch URL. Never POST { action: 'list' } to the submit
+  // webhook unless that flow has a list branch — otherwise Power Automate adds
+  // blank rows to Excel on every page load.
+  return GAME_CONFIG.sharepoint.leaderboardFetchUrl?.trim() || '';
 }
 
 function normalizeRows(payload) {
@@ -66,25 +67,35 @@ export async function fetchLeaderboardEntries() {
   }
 
   const body = JSON.stringify({ action: 'list' });
-  const attempts = [
-    { headers: { 'Content-Type': 'application/json' }, body },
-    { headers: { 'Content-Type': 'text/plain' }, body },
-  ];
 
-  let lastError = null;
-  for (const attempt of attempts) {
-    try {
-      const response = await fetch(url, { method: 'POST', ...attempt });
-      if (!response.ok && response.status !== 202) {
-        lastError = new Error(`Leaderboard fetch returned ${response.status}`);
-        continue;
-      }
-      const payload = await response.json();
-      return rowsToEntries(payload);
-    } catch (err) {
-      lastError = err;
-    }
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  });
+
+  if (!response.ok && response.status !== 202) {
+    throw new Error(`Leaderboard fetch returned ${response.status}`);
   }
 
-  throw lastError ?? new Error('Could not load leaderboard.');
+  const text = (await response.text()).trim();
+  if (!text) {
+    throw new Error(
+      'Leaderboard fetch returned an empty response. Add the list branch to your Power Automate flow (see docs/sharepoint-setup.md).'
+    );
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    throw new Error('Leaderboard fetch returned invalid JSON.');
+  }
+
+  const entries = rowsToEntries(payload);
+  if (!entries.length) {
+    throw new Error('Leaderboard fetch returned no player entries.');
+  }
+
+  return entries;
 }
