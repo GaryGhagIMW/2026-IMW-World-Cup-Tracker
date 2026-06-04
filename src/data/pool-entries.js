@@ -32,6 +32,44 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-02T20:22:07.614Z'
   ),
   poolEntry(
+    'Aileen Wei',
+    'aileenwei@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'TUR', 'PAR', 'AUS'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['BEL', 'IRN', 'EGY', 'NZL'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['ARG', 'AUT', 'ALG', 'JOR'],
+      K: ['POR', 'COL', 'COD', 'UZB'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-04T20:14:26.568Z'
+  ),
+  poolEntry(
+    'AJ Martens',
+    'andrew.martens@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'PAR', 'TUR', 'AUS'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['BEL', 'EGY', 'IRN', 'NZL'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['FRA', 'SEN', 'NOR', 'IRQ'],
+      J: ['ARG', 'ALG', 'AUT', 'JOR'],
+      K: ['POR', 'COL', 'COD', 'UZB'],
+      L: ['ENG', 'CRO', 'PAN', 'GHA'],
+    },
+    '2026-06-04T21:29:39.754Z'
+  ),
+  poolEntry(
     'Andre Dancs',
     'Andre.Dancs@imw.ca',
     {
@@ -70,6 +108,25 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-02T21:51:05.470Z'
   ),
   poolEntry(
+    'brent behm',
+    'Brent.Behm@imw.ca',
+    {
+      A: ['RSA', 'CZE', 'MEX', 'KOR'],
+      B: ['BIH', 'CAN', 'QAT', 'SUI'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'PAR', 'AUS', 'TUR'],
+      E: ['GER', 'CUW', 'ECU', 'CIV'],
+      F: ['NED', 'SWE', 'TUN', 'JPN'],
+      G: ['NZL', 'IRN', 'BEL', 'EGY'],
+      H: ['ESP', 'CPV', 'URU', 'KSA'],
+      I: ['FRA', 'IRQ', 'NOR', 'SEN'],
+      J: ['ARG', 'JOR', 'ALG', 'AUT'],
+      K: ['COL', 'COD', 'POR', 'UZB'],
+      L: ['ENG', 'PAN', 'GHA', 'CRO'],
+    },
+    '2026-06-04T18:16:35.163Z'
+  ),
+  poolEntry(
     'Creigh Sullivan',
     'creigh.sullivan@imw.ca',
     {
@@ -87,6 +144,44 @@ export const POOL_ENTRIES = [  poolEntry(
       L: ['ENG', 'CRO', 'GHA', 'PAN'],
     },
     '2026-06-03T15:46:59.871Z'
+  ),
+  poolEntry(
+    'Edward Guo',
+    'Edward.Guo@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'TUR', 'AUS', 'PAR'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['EGY', 'BEL', 'IRN', 'NZL'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['ARG', 'AUT', 'ALG', 'JOR'],
+      K: ['POR', 'COL', 'COD', 'UZB'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-04T19:52:03.400Z'
+  ),
+  poolEntry(
+    'Garrett Smith',
+    'Garrett.Smith@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'TUR', 'PAR', 'AUS'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['BEL', 'EGY', 'IRN', 'NZL'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['ARG', 'AUT', 'ALG', 'JOR'],
+      K: ['POR', 'COL', 'COD', 'UZB'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-04T16:31:32.667Z'
   ),
   poolEntry(
     'Gary Ghag',
@@ -222,7 +317,7 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-03T15:47:34.796Z'
   ),
   poolEntry(
-    'Stephan Chaland',
+    'Stephane Chaland',
     'stephane.chaland@imw.ca',
     {
       A: ['MEX', 'KOR', 'RSA', 'CZE'],
