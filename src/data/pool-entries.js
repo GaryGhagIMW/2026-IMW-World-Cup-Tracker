@@ -51,7 +51,7 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-02T16:48:06.000Z'
   ),
   poolEntry(
-    'brent behm',
+    'Brent Behm',
     'Brent.Behm@imw.ca',
     {
       A: ['RSA', 'CZE', 'MEX', 'KOR'],
@@ -184,7 +184,7 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-02T22:01:32.223Z'
   ),
   poolEntry(
-    'Mark',
+    'Mark Lavigne',
     'mark.lavigne@imw.ca',
     {
       A: ['MEX', 'RSA', 'KOR', 'CZE'],
