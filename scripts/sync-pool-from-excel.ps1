@@ -13,8 +13,26 @@ $repoRoot = Split-Path $PSScriptRoot -Parent
 $outPath = Join-Path $repoRoot 'src\data\pool-entries.js'
 $groups = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L')
 $rows = Import-Excel $excelPath -WorksheetName 'Group Stage Entries' |
-  Where-Object { $_.PlayerName -and $_.PlayerName.Trim() } |
-  Sort-Object PlayerName
+  Where-Object { $_.PlayerName -and $_.PlayerName.Trim() }
+
+# One row per email — keep the best display name (prefer Title Case over all-lowercase).
+$deduped = @{}
+foreach ($row in $rows) {
+  $key = ([string]$row.Email).Trim().ToLower()
+  if (-not $key) { continue }
+  $existing = $deduped[$key]
+  if (-not $existing) {
+    $deduped[$key] = $row
+    continue
+  }
+  $existingLower = $existing.PlayerName -ceq $existing.PlayerName.ToLower()
+  $rowLower = $row.PlayerName -ceq $row.PlayerName.ToLower()
+  if ($existingLower -and -not $rowLower) {
+    $deduped[$key] = $row
+  }
+}
+
+$rows = $deduped.Values | Sort-Object PlayerName
 
 function Format-SubmittedAt($value) {
   if ($value -is [datetime]) {

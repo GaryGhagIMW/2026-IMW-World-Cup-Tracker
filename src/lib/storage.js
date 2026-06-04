@@ -16,7 +16,29 @@ export function getLeaderboardEntries(state = {}) {
     merged = addOrUpdateEntry(merged, entry);
   }
 
-  return merged;
+  return dedupeEntriesByEmail(merged);
+}
+
+function dedupeEntriesByEmail(entries) {
+  const byEmail = new Map();
+  for (const entry of entries) {
+    const email = (entry.email ?? '').trim().toLowerCase();
+    if (!email) {
+      byEmail.set(`name:${entry.name.toLowerCase()}`, entry);
+      continue;
+    }
+    const existing = byEmail.get(email);
+    if (!existing) {
+      byEmail.set(email, entry);
+      continue;
+    }
+    const existingAllLower = existing.name === existing.name.toLowerCase();
+    const entryAllLower = entry.name === entry.name.toLowerCase();
+    if (existingAllLower && !entryAllLower) {
+      byEmail.set(email, entry);
+    }
+  }
+  return [...byEmail.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function loadState() {
