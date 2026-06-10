@@ -12,10 +12,22 @@ if (-not (Test-Path $excelPath)) {
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $outPath = Join-Path $repoRoot 'src\data\pool-entries.js'
 $groups = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L')
-$rows = Import-Excel $excelPath -WorksheetName 'Group Stage Entries' |
+
+function Import-PoolRows($path) {
+  try {
+    return Import-Excel $path -WorksheetName 'Group Stage Entries'
+  } catch {
+    $tempCopy = Join-Path $env:TEMP 'Group Stage Entries-sync.xlsx'
+    Copy-Item $path $tempCopy -Force
+    Write-Host "Excel file locked — reading from temp copy."
+    return Import-Excel $tempCopy -WorksheetName 'Group Stage Entries'
+  }
+}
+
+$rows = Import-PoolRows $excelPath |
   Where-Object { $_.PlayerName -and $_.PlayerName.Trim() }
 
-# One row per email — keep the best display name (prefer Title Case over all-lowercase).
+# One row per email — keep the best display name.
 $deduped = @{}
 foreach ($row in $rows) {
   $key = ([string]$row.Email).Trim().ToLower()
@@ -28,6 +40,10 @@ foreach ($row in $rows) {
   $existingLower = $existing.PlayerName -ceq $existing.PlayerName.ToLower()
   $rowLower = $row.PlayerName -ceq $row.PlayerName.ToLower()
   if ($existingLower -and -not $rowLower) {
+    $deduped[$key] = $row
+    continue
+  }
+  if ($row.PlayerName.Length -gt $existing.PlayerName.Length) {
     $deduped[$key] = $row
   }
 }
