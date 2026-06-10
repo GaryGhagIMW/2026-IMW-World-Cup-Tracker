@@ -431,6 +431,25 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-09T22:20:42.640Z'
   ),
   poolEntry(
+    'Ian Williams',
+    'ian.williams@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['TUR', 'USA', 'PAR', 'AUS'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'TUN', 'SWE'],
+      G: ['BEL', 'EGY', 'IRN', 'NZL'],
+      H: ['ESP', 'URU', 'CPV', 'KSA'],
+      I: ['FRA', 'SEN', 'NOR', 'IRQ'],
+      J: ['ARG', 'AUT', 'ALG', 'JOR'],
+      K: ['POR', 'COL', 'UZB', 'COD'],
+      L: ['ENG', 'CRO', 'PAN', 'GHA'],
+    },
+    '2026-06-10T20:19:13.159Z'
+  ),
+  poolEntry(
     'Jackson Lau',
     'jackson.lau@imw.ca',
     {
@@ -771,6 +790,25 @@ export const POOL_ENTRIES = [  poolEntry(
       L: ['ENG', 'CRO', 'PAN', 'GHA'],
     },
     '2026-06-05T23:02:29.007Z'
+  ),
+  poolEntry(
+    'Shari Quiring',
+    'shariq@live.ca',
+    {
+      A: ['KOR', 'CZE', 'MEX', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['HAI', 'BRA', 'SCO', 'MAR'],
+      D: ['TUR', 'USA', 'AUS', 'PAR'],
+      E: ['CIV', 'GER', 'CUW', 'ECU'],
+      F: ['JPN', 'NED', 'SWE', 'TUN'],
+      G: ['EGY', 'IRN', 'NZL', 'BEL'],
+      H: ['CPV', 'URU', 'KSA', 'ESP'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['AUT', 'ALG', 'JOR', 'ARG'],
+      K: ['UZB', 'COL', 'COD', 'POR'],
+      L: ['ENG', 'GHA', 'CRO', 'PAN'],
+    },
+    '2026-06-10T19:05:55.976Z'
   ),
   poolEntry(
     'Stephane Chaland',
