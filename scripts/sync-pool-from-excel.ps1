@@ -19,7 +19,7 @@ function Import-PoolRows($path) {
   } catch {
     $tempCopy = Join-Path $env:TEMP 'Group Stage Entries-sync.xlsx'
     Copy-Item $path $tempCopy -Force
-    Write-Host "Excel file locked — reading from temp copy."
+    Write-Host 'Excel file locked - reading from temp copy.'
     return Import-Excel $tempCopy -WorksheetName 'Group Stage Entries'
   }
 }
