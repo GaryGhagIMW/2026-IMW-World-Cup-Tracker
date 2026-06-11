@@ -65,6 +65,8 @@ export function getDefaultState() {
     allEntries: [],
     remoteEntries: [],
     leaderboardFetchedAt: null,
+    liveResults: null,
+    liveResultsFetchedAt: null,
   };
 }
 

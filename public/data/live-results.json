@@ -1,0 +1,129 @@
+﻿{
+    "updatedAt":  "2026-06-11T20:04:49.7777159Z",
+    "groups":  {
+                   "E":  [
+                             "CIV",
+                             "ECU",
+                             "GER",
+                             "CUW"
+                         ],
+                   "D":  [
+                             "AUS",
+                             "TUR",
+                             "USA",
+                             "PAR"
+                         ],
+                   "G":  [
+                             "IRN",
+                             "NZL",
+                             "BEL",
+                             "EGY"
+                         ],
+                   "F":  [
+                             "SWE",
+                             "TUN",
+                             "NED",
+                             "JPN"
+                         ],
+                   "B":  [
+                             "QAT",
+                             "SUI",
+                             "CAN",
+                             "BIH"
+                         ],
+                   "I":  [
+                             "IRQ",
+                             "NOR",
+                             "FRA",
+                             "SEN"
+                         ],
+                   "K":  [
+                             "UZB",
+                             "COL",
+                             "POR",
+                             "COD"
+                         ],
+                   "H":  [
+                             "KSA",
+                             "URU",
+                             "ESP",
+                             "CPV"
+                         ],
+                   "L":  [
+                             "GHA",
+                             "PAN",
+                             "ENG",
+                             "CRO"
+                         ],
+                   "J":  [
+                             "AUT",
+                             "JOR",
+                             "ARG",
+                             "ALG"
+                         ],
+                   "C":  [
+                             "HAI",
+                             "SCO",
+                             "BRA",
+                             "MAR"
+                         ],
+                   "A":  [
+                             "KOR",
+                             "CZE",
+                             "MEX",
+                             "RSA"
+                         ]
+               },
+    "groupsWithMatches":  0,
+    "source":  "worldcup26.ir",
+    "meta":  {
+                 "E":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "D":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "G":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "F":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "B":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "I":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "K":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "H":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "L":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "J":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "C":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "A":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       }
+             }
+}

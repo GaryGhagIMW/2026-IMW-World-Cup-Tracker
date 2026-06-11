@@ -1,0 +1,31 @@
+name: Update live World Cup standings
+
+on:
+  schedule:
+    # Every 30 minutes during tournament (UTC)
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-standings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch live group standings
+        run: node scripts/fetch-live-results.mjs
+
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update live World Cup group standings.'
+          file_pattern: public/data/live-results.json

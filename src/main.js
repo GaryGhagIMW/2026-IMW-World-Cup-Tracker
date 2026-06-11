@@ -35,6 +35,13 @@ import {
   fetchLeaderboardEntries,
   isLeaderboardFetchConfigured,
 } from './lib/leaderboard.js';
+import {
+  fetchLiveResultsFile,
+  getEffectiveResults,
+  getResultsLabel,
+  hasScoringResults,
+  isLiveResultsEnabled,
+} from './lib/live-results.js';
 import { assetUrl } from './lib/base.js';
 
 const LOGO_URL = assetUrl('assets/imw-logo.png');
@@ -47,6 +54,30 @@ let isSubmitting = false;
 let isFetchingLeaderboard = false;
 
 const LEADERBOARD_CACHE_MS = 60_000;
+
+async function refreshLiveResults(force = false) {
+  if (!isLiveResultsEnabled()) return;
+
+  const fetchedAt = state.liveResultsFetchedAt
+    ? Date.parse(state.liveResultsFetchedAt)
+    : 0;
+  const age = Date.now() - fetchedAt;
+  const refreshMs = GAME_CONFIG.liveResults?.refreshMs ?? 300_000;
+  if (!force && age < refreshMs) return;
+
+  try {
+    const payload = await fetchLiveResultsFile();
+    if (payload) {
+      state.liveResults = payload;
+      state.liveResultsFetchedAt = new Date().toISOString();
+      saveState(state);
+    }
+  } catch (err) {
+    console.warn('Live results refresh failed:', err);
+  } finally {
+    if (activeTab === 'leaderboard') render();
+  }
+}
 
 async function refreshLeaderboard(force = false) {
   if (!isLeaderboardFetchConfigured()) return;
@@ -337,9 +368,10 @@ function renderKnockoutComingSoon() {
 }
 
 function renderLeaderboard() {
-  const results = ensureResults();
+  const results = getEffectiveResults(state);
   const entries = getLeaderboardEntries(state);
-  const hasResults = Object.values(results.groups).some((g) => g.some(Boolean));
+  const hasResults = hasScoringResults(results);
+  const resultsLabel = getResultsLabel(results, state.liveResults);
 
   if (!entries.length && isFetchingLeaderboard) {
     return `
@@ -368,9 +400,11 @@ function renderLeaderboard() {
         </button>
       </div>
       ${
-        !hasResults
-          ? '<p class="muted">Enter actual group results in Admin to calculate scores.</p>'
-          : ''
+        isLiveResultsEnabled()
+          ? `<p class="muted">${resultsLabel}</p>`
+          : !hasResults
+            ? '<p class="muted">Enter actual group results in Admin to calculate scores.</p>'
+            : ''
       }
       ${
         isLeaderboardFetchConfigured()
@@ -423,6 +457,7 @@ function renderAdmin() {
   }
 
   const results = ensureResults();
+  const effectiveResults = getEffectiveResults(state);
   const entryCount = state.allEntries.length;
 
   return `
@@ -448,7 +483,7 @@ function renderAdmin() {
       }
 
       <h3>Official group results</h3>
-      <p class="muted">Set the actual 1st–4th finish for each group to score the leaderboard.</p>
+      <p class="muted">Override live standings for any group if needed. Leave blank to use automatic live updates on the leaderboard.</p>
       <div class="groups-grid">
         ${GROUPS.map((group) => {
           const picks = results.groups[group.id] ?? ['', '', '', ''];
@@ -480,7 +515,7 @@ function renderAdmin() {
           ? (() => {
               const preview = scoreGroupPredictions(
                 state.entry.groups,
-                results.groups
+                effectiveResults.groups
               );
               return `<p class="muted" style="margin-top:1rem">Preview — ${state.entry.name}: ${preview.points} / ${preview.maxPoints} group pts</p>`;
             })()
@@ -570,12 +605,14 @@ function bindEvents() {
       activeTab = btn.dataset.tab;
       render();
       if (activeTab === 'leaderboard') {
+        refreshLiveResults(true);
         refreshLeaderboard(true);
       }
     });
   });
 
   document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
+    refreshLiveResults(true);
     refreshLeaderboard(true);
   });
 
@@ -738,4 +775,5 @@ function bindEvents() {
 }
 
 render();
+refreshLiveResults(true);
 refreshLeaderboard(true);
