@@ -1,6 +1,6 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-11T22:21:28.120Z",
+  "updatedAt": "2026-06-11T23:59:10.083Z",
   "groupsWithMatches": 0,
   "groups": {
     "H": [
@@ -40,10 +40,10 @@
       "NZL"
     ],
     "A": [
-      "RSA",
+      "MEX",
       "KOR",
       "CZE",
-      "MEX"
+      "RSA"
     ],
     "B": [
       "CAN",
@@ -139,10 +139,10 @@
     },
     "A": {
       "positions": [
-        "RSA",
+        "MEX",
         "KOR",
         "CZE",
-        "MEX"
+        "RSA"
       ],
       "matchesPlayed": 0,
       "live": false
