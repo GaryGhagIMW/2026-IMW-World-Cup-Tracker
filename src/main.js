@@ -375,7 +375,7 @@ function renderLeaderboard() {
       ${
         isLeaderboardFetchConfigured()
           ? `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} · synced from OneDrive</p>`
-          : ''
+          : `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} registered</p>`
       }
       <table class="score-table">
         <thead>
