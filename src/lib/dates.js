@@ -16,6 +16,7 @@ export function getToday() {
 export function isWindowOpen(windowKey, today = getToday()) {
   const window = GAME_CONFIG.windows[windowKey];
   if (!window) return false;
+  if (window.submissionsClosed) return false;
   const start = parseDate(window.start);
   const end = parseDate(window.end);
   return today >= start && today <= end;
@@ -24,6 +25,13 @@ export function isWindowOpen(windowKey, today = getToday()) {
 export function getWindowStatus(windowKey, today = getToday()) {
   const window = GAME_CONFIG.windows[windowKey];
   if (!window) return { state: 'unknown' };
+
+  if (window.submissionsClosed) {
+    return {
+      state: 'closed',
+      label: 'Entries closed',
+    };
+  }
 
   const start = parseDate(window.start);
   const end = parseDate(window.end);
@@ -63,6 +71,10 @@ export function formatDateRange(start, end) {
 
 export function canEditGroupStage(today = getToday()) {
   return isWindowOpen('groupStage', today);
+}
+
+export function isGroupStageClosed() {
+  return Boolean(GAME_CONFIG.windows.groupStage?.submissionsClosed);
 }
 
 export function canEditKnockoutEarly(today = getToday()) {

@@ -45,6 +45,8 @@ export const GAME_CONFIG = {
       label: 'Group stage picks',
       start: '2026-06-01',
       end: '2026-06-10',
+      /** Manual close — submissions disabled even if still inside the date window. */
+      submissionsClosed: true,
       description: 'Rank all 12 groups (1st through 4th place).',
     },
     knockoutEarly: {

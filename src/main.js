@@ -4,6 +4,7 @@ import {
   formatDateRange,
   getWindowStatus,
   canEditGroupStage,
+  isGroupStageClosed,
 } from './lib/dates.js';
 import {
   createEmptyEntry,
@@ -144,6 +145,7 @@ function countCompletedGroups(groups) {
 
 function renderHome() {
   const groupWindow = GAME_CONFIG.windows.groupStage;
+  const groupClosed = isGroupStageClosed();
 
   return `
     <section class="hero-banner">
@@ -151,6 +153,18 @@ function renderHome() {
       <p class="tagline">${GAME_CONFIG.tagline}</p>
       <p class="subtitle">${GAME_CONFIG.subtitle}</p>
     </section>
+
+    ${
+      groupClosed
+        ? `<section class="panel">
+      <div class="callout warning">
+        <strong>Group stage entries are closed.</strong>
+        The submission window ended ${formatDateRange(groupWindow.start, groupWindow.end)}.
+        No further picks will be accepted. See the <strong>Leaderboard</strong> for standings once results are entered.
+      </div>
+    </section>`
+        : ''
+    }
 
     <section class="panel">
       <h2>Phase 1 — Group stage predictions</h2>
@@ -163,9 +177,11 @@ function renderHome() {
         &nbsp; ${renderStatusBadge('groupStage')}
       </div>
       ${
-        isSharePointConfigured()
-          ? `<div class="callout success"><strong>Ready to submit.</strong> Complete your picks on the Group Stage tab and click <strong>Submit picks</strong>.</div>`
-          : `<div class="callout warning"><strong>Submission pending setup.</strong> An organizer must connect SharePoint — see <code>docs/sharepoint-setup.md</code>.</div>`
+        groupClosed
+          ? ''
+          : isSharePointConfigured()
+            ? `<div class="callout success"><strong>Ready to submit.</strong> Complete your picks on the Group Stage tab and click <strong>Submit picks</strong>.</div>`
+            : `<div class="callout warning"><strong>Submission pending setup.</strong> An organizer must connect SharePoint — see <code>docs/sharepoint-setup.md</code>.</div>`
       }
     </section>
 
@@ -233,6 +249,7 @@ function renderRules() {
 function renderGroups() {
   const entry = ensureEntry();
   const editable = canEditGroupStage() || state.isAdmin;
+  const groupClosed = isGroupStageClosed();
   const positions = ['1st place', '2nd place', '3rd place', '4th place'];
   const completed = countCompletedGroups(entry.groups);
   const spReady = isSharePointConfigured();
@@ -243,6 +260,11 @@ function renderGroups() {
         <h2>Group stage predictions</h2>
         ${renderStatusBadge('groupStage')}
       </div>
+      ${
+        groupClosed && !state.isAdmin
+          ? `<div class="callout warning"><strong>Group stage entries are closed.</strong> Submissions are no longer accepted. You can still view picks on the <strong>Leaderboard</strong>.</div>`
+          : ''
+      }
       <p class="muted">
         Rank every team in each group in the order you think they will finish (1st through 4th).
         Submission window: ${formatDateRange(GAME_CONFIG.windows.groupStage.start, GAME_CONFIG.windows.groupStage.end)}.

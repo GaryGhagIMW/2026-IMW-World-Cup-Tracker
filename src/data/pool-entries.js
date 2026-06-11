@@ -773,6 +773,25 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-09T15:42:04.989Z'
   ),
   poolEntry(
+    'Rina Marceles',
+    'rina.marceles@imw.ca',
+    {
+      A: ['KOR', 'MEX', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'QAT', 'BIH'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'PAR', 'TUR', 'AUS'],
+      E: ['GER', 'ECU', 'CUW', 'CIV'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['BEL', 'NZL', 'EGY', 'IRN'],
+      H: ['ESP', 'URU', 'KSA', 'CPV'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['ARG', 'ALG', 'AUT', 'JOR'],
+      K: ['COL', 'POR', 'COD', 'UZB'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-10T23:54:08.013Z'
+  ),
+  poolEntry(
     'Robert Smith',
     'robasmith79@gmail.com',
     {

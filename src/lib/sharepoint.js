@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from '../data/config.js';
+import { isGroupStageClosed } from './dates.js';
 import { GROUPS } from '../data/groups.js';
 
 function flattenGroupsForSharePoint(groups) {
@@ -43,6 +44,10 @@ export function isSharePointConfigured() {
  * receives the POST and creates the list item — no local file required.
  */
 export async function submitToSharePoint(entry) {
+  if (isGroupStageClosed()) {
+    throw new Error('Group stage entries are closed. Submissions are no longer accepted.');
+  }
+
   const webhookUrl = GAME_CONFIG.sharepoint.webhookUrl?.trim();
   if (!webhookUrl) {
     throw new Error(
