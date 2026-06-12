@@ -678,6 +678,25 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-08T13:16:30.357Z'
   ),
   poolEntry(
+    'Omid Basti',
+    'omid.basti@imw.ca',
+    {
+      A: ['MEX', 'KOR', 'CZE', 'RSA'],
+      B: ['SUI', 'CAN', 'BIH', 'QAT'],
+      C: ['BRA', 'MAR', 'SCO', 'HAI'],
+      D: ['USA', 'TUR', 'PAR', 'AUS'],
+      E: ['GER', 'ECU', 'CIV', 'CUW'],
+      F: ['NED', 'JPN', 'SWE', 'TUN'],
+      G: ['BEL', 'EGY', 'IRN', 'NZL'],
+      H: ['ESP', 'URU', 'CPV', 'KSA'],
+      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
+      J: ['ARG', 'AUT', 'ALG', 'JOR'],
+      K: ['POR', 'COL', 'UZB', 'COD'],
+      L: ['ENG', 'CRO', 'GHA', 'PAN'],
+    },
+    '2026-06-12T00:00:00.000Z'
+  ),
+  poolEntry(
     'Peyman Kanzehle',
     'peyman.kanzehle@imw.ca',
     {
