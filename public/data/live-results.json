@@ -1,7 +1,7 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-12T04:21:42.972Z",
-  "groupsWithMatches": 0,
+  "updatedAt": "2026-06-12T08:45:40.690Z",
+  "groupsWithMatches": 2,
   "groups": {
     "H": [
       "ESP",
@@ -134,8 +134,8 @@
         "IRN",
         "NZL"
       ],
-      "matchesPlayed": 0,
-      "live": false
+      "matchesPlayed": 1,
+      "live": true
     },
     "A": {
       "positions": [
@@ -144,8 +144,8 @@
         "CZE",
         "RSA"
       ],
-      "matchesPlayed": 0,
-      "live": false
+      "matchesPlayed": 1,
+      "live": true
     },
     "B": {
       "positions": [
