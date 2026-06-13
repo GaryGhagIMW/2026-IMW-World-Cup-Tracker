@@ -1,7 +1,7 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-12T23:58:25.022Z",
-  "groupsWithMatches": 2,
+  "updatedAt": "2026-06-13T03:57:44.906Z",
+  "groupsWithMatches": 3,
   "groups": {
     "H": [
       "ESP",
@@ -17,9 +17,9 @@
     ],
     "D": [
       "USA",
-      "PAR",
       "AUS",
-      "TUR"
+      "TUR",
+      "PAR"
     ],
     "E": [
       "GER",
@@ -100,12 +100,12 @@
     "D": {
       "positions": [
         "USA",
-        "PAR",
         "AUS",
-        "TUR"
+        "TUR",
+        "PAR"
       ],
-      "matchesPlayed": 0,
-      "live": false
+      "matchesPlayed": 1,
+      "live": true
     },
     "E": {
       "positions": [
