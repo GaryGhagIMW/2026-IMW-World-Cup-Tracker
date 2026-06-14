@@ -1,6 +1,6 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-14T01:41:12.246Z",
+  "updatedAt": "2026-06-14T06:28:26.785Z",
   "groupsWithMatches": 4,
   "groups": {
     "H": [
@@ -64,10 +64,10 @@
       "COL"
     ],
     "C": [
+      "SCO",
       "BRA",
       "MAR",
-      "HAI",
-      "SCO"
+      "HAI"
     ],
     "J": [
       "ARG",
@@ -179,10 +179,10 @@
     },
     "C": {
       "positions": [
+        "SCO",
         "BRA",
         "MAR",
-        "HAI",
-        "SCO"
+        "HAI"
       ],
       "matchesPlayed": 1,
       "live": true
