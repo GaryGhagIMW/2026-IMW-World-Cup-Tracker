@@ -1,7 +1,7 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-13T23:04:50.738Z",
-  "groupsWithMatches": 3,
+  "updatedAt": "2026-06-14T01:41:12.246Z",
+  "groupsWithMatches": 4,
   "groups": {
     "H": [
       "ESP",
@@ -184,8 +184,8 @@
         "HAI",
         "SCO"
       ],
-      "matchesPlayed": 0,
-      "live": false
+      "matchesPlayed": 1,
+      "live": true
     },
     "J": {
       "positions": [
