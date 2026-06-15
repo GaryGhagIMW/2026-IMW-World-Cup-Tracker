@@ -1,201 +1,129 @@
-{
-  "source": "worldcup26.ir",
-  "updatedAt": "2026-06-15T15:28:13.369Z",
-  "groupsWithMatches": 6,
-  "groups": {
-    "A": [
-      "MEX",
-      "KOR",
-      "CZE",
-      "RSA"
-    ],
-    "B": [
-      "CAN",
-      "BIH",
-      "QAT",
-      "SUI"
-    ],
-    "C": [
-      "SCO",
-      "BRA",
-      "MAR",
-      "HAI"
-    ],
-    "D": [
-      "USA",
-      "AUS",
-      "TUR",
-      "PAR"
-    ],
-    "E": [
-      "GER",
-      "CIV",
-      "ECU",
-      "CUW"
-    ],
-    "F": [
-      "SWE",
-      "NED",
-      "JPN",
-      "TUN"
-    ],
-    "G": [
-      "BEL",
-      "EGY",
-      "IRN",
-      "NZL"
-    ],
-    "H": [
-      "ESP",
-      "CPV",
-      "KSA",
-      "URU"
-    ],
-    "I": [
-      "FRA",
-      "SEN",
-      "IRQ",
-      "NOR"
-    ],
-    "J": [
-      "ARG",
-      "ALG",
-      "AUT",
-      "JOR"
-    ],
-    "K": [
-      "POR",
-      "COD",
-      "UZB",
-      "COL"
-    ],
-    "L": [
-      "ENG",
-      "CRO",
-      "GHA",
-      "PAN"
-    ]
-  },
-  "meta": {
-    "A": {
-      "positions": [
-        "MEX",
-        "KOR",
-        "CZE",
-        "RSA"
-      ],
-      "matchesPlayed": 1,
-      "live": true
-    },
-    "B": {
-      "positions": [
-        "CAN",
-        "BIH",
-        "QAT",
-        "SUI"
-      ],
-      "matchesPlayed": 1,
-      "live": true
-    },
-    "C": {
-      "positions": [
-        "SCO",
-        "BRA",
-        "MAR",
-        "HAI"
-      ],
-      "matchesPlayed": 1,
-      "live": true
-    },
-    "D": {
-      "positions": [
-        "USA",
-        "AUS",
-        "TUR",
-        "PAR"
-      ],
-      "matchesPlayed": 1,
-      "live": true
-    },
-    "E": {
-      "positions": [
-        "GER",
-        "CIV",
-        "ECU",
-        "CUW"
-      ],
-      "matchesPlayed": 1,
-      "live": true
-    },
-    "F": {
-      "positions": [
-        "SWE",
-        "NED",
-        "JPN",
-        "TUN"
-      ],
-      "matchesPlayed": 1,
-      "live": true
-    },
-    "G": {
-      "positions": [
-        "BEL",
-        "EGY",
-        "IRN",
-        "NZL"
-      ],
-      "matchesPlayed": 0,
-      "live": false
-    },
-    "H": {
-      "positions": [
-        "ESP",
-        "CPV",
-        "KSA",
-        "URU"
-      ],
-      "matchesPlayed": 0,
-      "live": false
-    },
-    "I": {
-      "positions": [
-        "FRA",
-        "SEN",
-        "IRQ",
-        "NOR"
-      ],
-      "matchesPlayed": 0,
-      "live": false
-    },
-    "J": {
-      "positions": [
-        "ARG",
-        "ALG",
-        "AUT",
-        "JOR"
-      ],
-      "matchesPlayed": 0,
-      "live": false
-    },
-    "K": {
-      "positions": [
-        "POR",
-        "COD",
-        "UZB",
-        "COL"
-      ],
-      "matchesPlayed": 0,
-      "live": false
-    },
-    "L": {
-      "positions": [
-        "ENG",
-        "CRO",
-        "GHA",
-        "PAN"
-      ],
-      "matchesPlayed": 0,
-      "live": false
-    }
-  }
+﻿{
+    "meta":  {
+                 "E":  {
+                           "matchesPlayed":  1,
+                           "live":  true
+                       },
+                 "D":  {
+                           "matchesPlayed":  1,
+                           "live":  true
+                       },
+                 "G":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "F":  {
+                           "matchesPlayed":  1,
+                           "live":  true
+                       },
+                 "B":  {
+                           "matchesPlayed":  1,
+                           "live":  true
+                       },
+                 "L":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "I":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "K":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "H":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "C":  {
+                           "matchesPlayed":  1,
+                           "live":  true
+                       },
+                 "J":  {
+                           "matchesPlayed":  0,
+                           "live":  false
+                       },
+                 "A":  {
+                           "matchesPlayed":  1,
+                           "live":  true
+                       }
+             },
+    "source":  "worldcup26.ir",
+    "groups":  {
+                   "E":  [
+                             "GER",
+                             "CIV",
+                             "ECU",
+                             "CUW"
+                         ],
+                   "D":  [
+                             "USA",
+                             "AUS",
+                             "TUR",
+                             "PAR"
+                         ],
+                   "G":  [
+                             "IRN",
+                             "NZL",
+                             "BEL",
+                             "EGY"
+                         ],
+                   "F":  [
+                             "SWE",
+                             "JPN",
+                             "NED",
+                             "TUN"
+                         ],
+                   "B":  [
+                             "QAT",
+                             "SUI",
+                             "CAN",
+                             "BIH"
+                         ],
+                   "L":  [
+                             "GHA",
+                             "PAN",
+                             "ENG",
+                             "CRO"
+                         ],
+                   "I":  [
+                             "IRQ",
+                             "NOR",
+                             "FRA",
+                             "SEN"
+                         ],
+                   "K":  [
+                             "UZB",
+                             "COL",
+                             "POR",
+                             "COD"
+                         ],
+                   "H":  [
+                             "KSA",
+                             "URU",
+                             "ESP",
+                             "CPV"
+                         ],
+                   "C":  [
+                             "SCO",
+                             "BRA",
+                             "MAR",
+                             "HAI"
+                         ],
+                   "J":  [
+                             "AUT",
+                             "JOR",
+                             "ARG",
+                             "ALG"
+                         ],
+                   "A":  [
+                             "MEX",
+                             "KOR",
+                             "CZE",
+                             "RSA"
+                         ]
+               },
+    "groupsWithMatches":  6,
+    "updatedAt":  "2026-06-15T16:04:04.7536533Z"
 }

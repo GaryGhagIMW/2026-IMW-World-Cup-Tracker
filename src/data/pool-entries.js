@@ -184,25 +184,6 @@ export const POOL_ENTRIES = [  poolEntry(
     '2026-06-08T22:02:37.697Z'
   ),
   poolEntry(
-    'Brandon Johnson',
-    'brandon.johnson@imw.ca',
-    {
-      A: ['RSA', 'MEX', 'KOR', 'CZE'],
-      B: ['QAT', 'SUI', 'BIH', 'CAN'],
-      C: ['BRA', 'HAI', 'SCO', 'MAR'],
-      D: ['AUS', 'TUR', 'USA', 'PAR'],
-      E: ['ECU', 'CUW', 'CIV', 'GER'],
-      F: ['SWE', 'JPN', 'NED', 'TUN'],
-      G: ['BEL', 'EGY', 'IRN', 'NZL'],
-      H: ['ESP', 'KSA', 'CPV', 'URU'],
-      I: ['FRA', 'NOR', 'SEN', 'IRQ'],
-      J: ['AUT', 'ARG', 'ALG', 'JOR'],
-      K: ['COL', 'COD', 'POR', 'UZB'],
-      L: ['ENG', 'CRO', 'PAN', 'GHA'],
-    },
-    '2026-06-10T14:59:19.796Z'
-  ),
-  poolEntry(
     'Brent Behm',
     'Brent.Behm@imw.ca',
     {
