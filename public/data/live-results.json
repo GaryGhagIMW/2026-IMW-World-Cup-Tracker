@@ -1,6 +1,6 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-15T02:59:28.481Z",
+  "updatedAt": "2026-06-15T09:28:06.958Z",
   "groupsWithMatches": 6,
   "groups": {
     "A": [
@@ -34,9 +34,9 @@
       "CUW"
     ],
     "F": [
+      "SWE",
       "NED",
       "JPN",
-      "SWE",
       "TUN"
     ],
     "G": [
@@ -129,9 +129,9 @@
     },
     "F": {
       "positions": [
+        "SWE",
         "NED",
         "JPN",
-        "SWE",
         "TUN"
       ],
       "matchesPlayed": 1,
