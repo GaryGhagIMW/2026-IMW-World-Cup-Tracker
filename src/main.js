@@ -36,7 +36,7 @@ import {
   isLeaderboardFetchConfigured,
 } from './lib/leaderboard.js';
 import {
-  fetchLiveResultsFile,
+  fetchLiveResults,
   getEffectiveResults,
   getResultsLabel,
   hasScoringResults,
@@ -52,6 +52,7 @@ let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
 let isFetchingLeaderboard = false;
+let liveResultsTimer = null;
 
 const LEADERBOARD_CACHE_MS = 60_000;
 
@@ -66,7 +67,7 @@ async function refreshLiveResults(force = false) {
   if (!force && age < refreshMs) return;
 
   try {
-    const payload = await fetchLiveResultsFile();
+    const payload = await fetchLiveResults();
     if (payload) {
       state.liveResults = payload;
       state.liveResultsFetchedAt = new Date().toISOString();
@@ -76,6 +77,23 @@ async function refreshLiveResults(force = false) {
     console.warn('Live results refresh failed:', err);
   } finally {
     if (activeTab === 'leaderboard') render();
+  }
+}
+
+function startLiveResultsPolling() {
+  stopLiveResultsPolling();
+  if (!isLiveResultsEnabled() || activeTab !== 'leaderboard') return;
+
+  const refreshMs = GAME_CONFIG.liveResults?.refreshMs ?? 120_000;
+  liveResultsTimer = setInterval(() => {
+    refreshLiveResults(true);
+  }, refreshMs);
+}
+
+function stopLiveResultsPolling() {
+  if (liveResultsTimer) {
+    clearInterval(liveResultsTimer);
+    liveResultsTimer = null;
   }
 }
 
@@ -597,6 +615,11 @@ function render() {
   `;
 
   bindEvents();
+  if (activeTab === 'leaderboard') {
+    startLiveResultsPolling();
+  } else {
+    stopLiveResultsPolling();
+  }
 }
 
 function bindEvents() {

@@ -73,8 +73,10 @@ export const GAME_CONFIG = {
   liveResults: {
     enabled: true,
     provider: 'worldcup26.ir',
-    /** Client refresh interval when viewing the leaderboard (ms). */
-    refreshMs: 300_000,
+    /** Pull directly from the API in the browser (falls back to live-results.json). */
+    fetchFromApi: true,
+    /** Refresh while viewing the leaderboard (ms). */
+    refreshMs: 120_000,
   },
 };
 

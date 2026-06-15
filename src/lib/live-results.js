@@ -2,6 +2,7 @@ import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
 import { createEmptyGroupPredictions } from './scoring.js';
 import { assetUrl } from './base.js';
+import { fetchWorldCupStandings } from './worldcup-api.js';
 
 const LIVE_RESULTS_PATH = 'data/live-results.json';
 
@@ -65,12 +66,28 @@ export function getResultsLabel(results, liveMeta) {
       timeStyle: 'short',
     });
     const liveCount = liveMeta.groupsWithMatches ?? 0;
+    const via = liveMeta.source === 'worldcup26.ir' ? 'live API' : 'cached file';
     if (liveCount > 0) {
-      return `Live standings · ${liveCount}/12 groups in play · updated ${when}`;
+      return `Live standings · ${liveCount}/12 groups in play · ${via} · updated ${when}`;
     }
-    return `Standings file updated ${when} · waiting for match results`;
+    return `Standings (${via}) updated ${when} · waiting for match results`;
   }
   return 'Using organizer-entered results.';
+}
+
+/** Fetch live standings — API first, bundled JSON fallback. */
+export async function fetchLiveResults() {
+  if (!isLiveResultsEnabled()) return null;
+
+  if (GAME_CONFIG.liveResults?.fetchFromApi !== false) {
+    try {
+      return await fetchWorldCupStandings();
+    } catch (err) {
+      console.warn('Live API fetch failed, using bundled file:', err);
+    }
+  }
+
+  return fetchLiveResultsFile();
 }
 
 /** Load bundled live-results.json (updated by GitHub Action). */
