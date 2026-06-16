@@ -1,5 +1,5 @@
 import { GAME_CONFIG, getMaxGroupPoints } from './data/config.js';
-import { GROUPS } from './data/groups.js';
+import { GROUPS, getTeamName } from './data/groups.js';
 import {
   formatDateRange,
   getWindowStatus,
@@ -48,6 +48,7 @@ const LOGO_URL = assetUrl('assets/imw-logo.png');
 
 let state = loadState();
 let activeTab = 'home';
+let expandedLeaderboardKeys = new Set();
 let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
@@ -441,6 +442,35 @@ function renderKnockoutComingSoon() {
   `;
 }
 
+function leaderboardPlayerKey(row) {
+  const email = (row.email ?? '').trim().toLowerCase();
+  return email || row.name.trim().toLowerCase();
+}
+
+function renderPlayerGroupPicks(groups) {
+  return `
+    <div class="player-picks-grid">
+      ${GROUPS.map((group) => {
+        const picks = groups?.[group.id] ?? [];
+        return `
+        <article class="player-picks-group">
+          <h4>${group.name}</h4>
+          <ol class="player-picks-list">
+            ${[0, 1, 2, 3]
+              .map(
+                (i) => `
+              <li>
+                <span class="player-picks-pos">${i + 1}</span>
+                <span class="player-picks-team">${getTeamName(picks[i])}</span>
+              </li>`
+              )
+              .join('')}
+          </ol>
+        </article>`;
+      }).join('')}
+    </div>`;
+}
+
 function renderLeaderboard() {
   const results = getEffectiveResults(state);
   const entries = getLeaderboardEntries(state);
@@ -496,15 +526,36 @@ function renderLeaderboard() {
         </thead>
         <tbody>
           ${ranked
-            .map(
-              (row) => `
-            <tr>
+            .map((row) => {
+              const key = leaderboardPlayerKey(row);
+              const expanded = expandedLeaderboardKeys.has(key);
+              return `
+            <tr
+              class="leaderboard-summary${expanded ? ' is-expanded' : ''}"
+              data-leaderboard-toggle="${key}"
+              role="button"
+              tabindex="0"
+              aria-expanded="${expanded}"
+            >
               <td class="leaderboard-rank">${row.rank}</td>
-              <td>${row.name}</td>
+              <td>
+                <span class="leaderboard-player">
+                  <span class="leaderboard-chevron" aria-hidden="true">${expanded ? '▾' : '▸'}</span>
+                  ${row.name}
+                </span>
+              </td>
               <td><strong>${row.groupPoints}</strong></td>
               <td class="muted">${getMaxGroupPoints()}</td>
-            </tr>`
-            )
+            </tr>
+            <tr class="leaderboard-details${expanded ? ' is-expanded' : ''}" data-leaderboard-details="${key}">
+              <td colspan="4">
+                <div class="leaderboard-details-inner">
+                  <p class="muted player-picks-heading">Group stage picks</p>
+                  ${renderPlayerGroupPicks(row.groups)}
+                </div>
+              </td>
+            </tr>`;
+            })
             .join('')}
         </tbody>
       </table>
@@ -696,6 +747,27 @@ function bindEvents() {
   document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
     refreshLiveResults(true);
     refreshLeaderboard(true);
+  });
+
+  document.querySelectorAll('[data-leaderboard-toggle]').forEach((row) => {
+    const toggle = () => {
+      const key = row.dataset.leaderboardToggle;
+      if (!key) return;
+      if (expandedLeaderboardKeys.has(key)) {
+        expandedLeaderboardKeys.delete(key);
+      } else {
+        expandedLeaderboardKeys.add(key);
+      }
+      render();
+    };
+
+    row.addEventListener('click', toggle);
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggle();
+      }
+    });
   });
 
   document.getElementById('refresh-group-standings')?.addEventListener('click', () => {

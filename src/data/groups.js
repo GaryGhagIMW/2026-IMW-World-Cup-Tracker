@@ -130,6 +130,11 @@ export function getTeamByCode(code) {
   return null;
 }
 
+export function getTeamName(code) {
+  if (!code) return '—';
+  return getTeamByCode(code)?.name ?? code;
+}
+
 export function getAllTeams() {
   return GROUPS.flatMap((g) => g.teams.map((t) => ({ ...t, groupId: g.id })));
 }

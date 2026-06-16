@@ -184,6 +184,8 @@ export function rankGroupEntries(entries, results) {
     const group = scoreGroupPredictions(entry.groups, results.groups);
     return {
       name: entry.name,
+      email: entry.email ?? '',
+      groups: entry.groups,
       groupPoints: group.points,
       totalPoints: group.points,
       groupBreakdown: group.breakdown,
