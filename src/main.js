@@ -52,6 +52,7 @@ let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
 let isFetchingLeaderboard = false;
+let isFetchingGroupStandings = false;
 let liveResultsTimer = null;
 
 const LEADERBOARD_CACHE_MS = 60_000;
@@ -63,8 +64,13 @@ async function refreshLiveResults(force = false) {
     ? Date.parse(state.liveResultsFetchedAt)
     : 0;
   const age = Date.now() - fetchedAt;
-  const refreshMs = GAME_CONFIG.liveResults?.refreshMs ?? 300_000;
+  const refreshMs = GAME_CONFIG.liveResults?.refreshMs ?? 120_000;
   if (!force && age < refreshMs) return;
+
+  const affectsUi =
+    activeTab === 'leaderboard' || activeTab === 'groups';
+  if (activeTab === 'groups') isFetchingGroupStandings = true;
+  if (affectsUi) render();
 
   try {
     const payload = await fetchLiveResults();
@@ -76,13 +82,15 @@ async function refreshLiveResults(force = false) {
   } catch (err) {
     console.warn('Live results refresh failed:', err);
   } finally {
-    if (activeTab === 'leaderboard') render();
+    isFetchingGroupStandings = false;
+    if (affectsUi) render();
   }
 }
 
 function startLiveResultsPolling() {
   stopLiveResultsPolling();
-  if (!isLiveResultsEnabled() || activeTab !== 'leaderboard') return;
+  if (!isLiveResultsEnabled()) return;
+  if (activeTab !== 'leaderboard' && activeTab !== 'groups') return;
 
   const refreshMs = GAME_CONFIG.liveResults?.refreshMs ?? 120_000;
   liveResultsTimer = setInterval(() => {
@@ -216,9 +224,9 @@ function renderHome() {
     }
 
     <section class="panel">
-      <h2>Phase 1 — Group stage predictions</h2>
+      <h2>Phase 1 — Group stage</h2>
       <p class="muted">
-        Rank every team in all 12 groups in the order you think they will finish (1st through 4th).
+        Group stage entries are closed. Follow live group rankings on the <strong>Group Rankings</strong> tab and track pool points on the <strong>Leaderboard</strong>.
       </p>
       <div class="callout">
         <strong>Submission window:</strong>
@@ -238,10 +246,9 @@ function renderHome() {
       <h2>How to play</h2>
       <ol class="muted">
         <li>Enter your name and IMW email, then save.</li>
-        <li>Click the <strong>Group Stage</strong> tab and rank teams in every group in the order you think they will finish.</li>
-        <li>Click <strong>Submit picks</strong> before the submission window closes (${formatDateRange(groupWindow.start, groupWindow.end)}).</li>
+        <li>Track live group rankings on the <strong>Group Rankings</strong> tab.</li>
         <li>See the <strong>Rules</strong> tab for scoring details.</li>
-        <li>Track standings on the <strong>Leaderboard</strong> once results are entered.</li>
+        <li>Track standings on the <strong>Leaderboard</strong>.</li>
       </ol>
     </section>
 
@@ -295,63 +302,112 @@ function renderRules() {
   `;
 }
 
+function formatStandingsUpdatedAt(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+}
+
+function renderGroupStandingsTable(rows) {
+  if (!rows?.length) {
+    return '<p class="muted">No standings yet.</p>';
+  }
+
+  return `
+    <table class="group-standings-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Team</th>
+          <th>MP</th>
+          <th>W</th>
+          <th>D</th>
+          <th>L</th>
+          <th>GD</th>
+          <th>Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows
+          .map(
+            (row) => `
+          <tr class="${row.rank <= 2 ? 'qualifying' : ''}">
+            <td>${row.rank}</td>
+            <td class="team-cell">
+              ${
+                row.flag
+                  ? `<img class="team-flag" src="${row.flag}" alt="" width="20" height="15" loading="lazy" />`
+                  : ''
+              }
+              ${row.name}
+            </td>
+            <td>${row.mp}</td>
+            <td>${row.w}</td>
+            <td>${row.d}</td>
+            <td>${row.l}</td>
+            <td>${row.gd > 0 ? `+${row.gd}` : row.gd}</td>
+            <td><strong>${row.pts}</strong></td>
+          </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`;
+}
+
 function renderGroups() {
-  const entry = ensureEntry();
-  const editable = canEditGroupStage() || state.isAdmin;
-  const groupClosed = isGroupStageClosed();
-  const positions = ['1st place', '2nd place', '3rd place', '4th place'];
-  const completed = countCompletedGroups(entry.groups);
-  const spReady = isSharePointConfigured();
+  const standings = state.liveResults?.standings ?? {};
+  const updatedAt = state.liveResults?.updatedAt;
+  const liveCount = state.liveResults?.groupsWithMatches ?? 0;
+  const sortedGroups = [...GROUPS].sort((a, b) => a.id.localeCompare(b.id));
+
+  if (isFetchingGroupStandings && !Object.keys(standings).length) {
+    return `
+      <section class="panel">
+        <h2>Live group rankings</h2>
+        <p class="muted">Loading standings…</p>
+      </section>`;
+  }
 
   return `
     <section class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-        <h2>Group stage predictions</h2>
+        <h2>Live group rankings</h2>
         ${renderStatusBadge('groupStage')}
       </div>
-      ${
-        groupClosed && !state.isAdmin
-          ? `<div class="callout warning"><strong>Group stage entries are closed.</strong> Submissions are no longer accepted. You can still view picks on the <strong>Leaderboard</strong>.</div>`
-          : ''
-      }
-      <p class="muted">
-        Rank every team in each group in the order you think they will finish (1st through 4th).
-        Submission window: ${formatDateRange(GAME_CONFIG.windows.groupStage.start, GAME_CONFIG.windows.groupStage.end)}.
-      </p>
-      <p class="progress-hint">${completed} of ${GROUPS.length} groups completed</p>
-      ${!editable ? '<p class="muted">This window is closed. View-only unless admin is unlocked.</p>' : ''}
-
-      <div class="groups-grid">
-        ${GROUPS.map((group) => {
-          const picks = entry.groups[group.id] ?? ['', '', '', ''];
-          return `
-            <article class="group-card" data-group="${group.id}">
-              <h3>${group.name}</h3>
-              ${positions
-                .map(
-                  (label, idx) => `
-                <div class="position-row">
-                  <span class="position-label">${label}</span>
-                  <select data-group-pos="${group.id}:${idx}" ${editable ? '' : 'disabled'}>
-                    ${groupTeamOptions(group, picks[idx], picks)}
-                  </select>
-                </div>`
-                )
-                .join('')}
-            </article>`;
-        }).join('')}
+      <div class="callout">
+        <strong>Group stage entries are closed.</strong>
+        Live tables below update automatically as matches are played.
       </div>
-
-      <div class="actions-row">
-        <button class="primary" id="submit-sharepoint" ${editable && spReady && !isSubmitting ? '' : 'disabled'}>
-          ${isSubmitting ? 'Submitting…' : 'Submit picks'}
+      <p class="muted">
+        ${
+          updatedAt
+            ? `${liveCount}/12 groups with results · updated ${formatStandingsUpdatedAt(updatedAt)}`
+            : 'Standings will appear once match results are available.'
+        }
+      </p>
+      <div class="actions-row" style="margin-bottom:1rem">
+        <button class="ghost" id="refresh-group-standings" ${isFetchingGroupStandings ? 'disabled' : ''}>
+          ${isFetchingGroupStandings ? 'Refreshing…' : 'Refresh standings'}
         </button>
       </div>
-      ${
-        !spReady
-          ? '<p class="muted">SharePoint submit disabled until webhook URL is configured.</p>'
-          : ''
-      }
+
+      <div class="group-rankings-grid">
+        ${sortedGroups
+          .map((group) => {
+            const rows = standings[group.id] ?? [];
+            return `
+            <article class="group-card">
+              <h3>${group.name}</h3>
+              ${renderGroupStandingsTable(rows)}
+            </article>`;
+          })
+          .join('')}
+      </div>
+      <p class="muted" style="margin-top:1rem">
+        Top two in each group advance to the knockout stage. Data source: FIFA World Cup 2026 live feed.
+      </p>
     </section>
   `;
 }
@@ -565,7 +621,7 @@ function render() {
   const tabs = [
     { id: 'home', label: 'Home' },
     { id: 'rules', label: 'Rules' },
-    { id: 'groups', label: 'Group Stage' },
+    { id: 'groups', label: 'Group Rankings' },
     { id: 'knockout', label: 'Knockout', soon: true },
     { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'admin', label: 'Admin' },
@@ -615,7 +671,7 @@ function render() {
   `;
 
   bindEvents();
-  if (activeTab === 'leaderboard') {
+  if (activeTab === 'leaderboard' || activeTab === 'groups') {
     startLiveResultsPolling();
   } else {
     stopLiveResultsPolling();
@@ -631,12 +687,19 @@ function bindEvents() {
         refreshLiveResults(true);
         refreshLeaderboard(true);
       }
+      if (activeTab === 'groups') {
+        refreshLiveResults(true);
+      }
     });
   });
 
   document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
     refreshLiveResults(true);
     refreshLeaderboard(true);
+  });
+
+  document.getElementById('refresh-group-standings')?.addEventListener('click', () => {
+    refreshLiveResults(true);
   });
 
   document.getElementById('save-name')?.addEventListener('click', () => {

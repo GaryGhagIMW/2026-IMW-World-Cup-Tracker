@@ -14,6 +14,35 @@ export function rankTeams(teams) {
   });
 }
 
+export function buildGroupStandingsDetail(teams, groups) {
+  const teamById = new Map(teams.map((t) => [String(t.id), t]));
+  const standings = {};
+
+  for (const group of groups) {
+    const groupId = group.name;
+    const ranked = rankTeams(group.teams ?? []);
+    standings[groupId] = ranked.map((row, index) => {
+      const team = teamById.get(String(row.team_id));
+      return {
+        rank: index + 1,
+        code: team?.fifa_code ?? '',
+        name: team?.name_en ?? '',
+        flag: team?.flag ?? '',
+        mp: Number(row.mp),
+        w: Number(row.w),
+        d: Number(row.d),
+        l: Number(row.l),
+        gf: Number(row.gf),
+        ga: Number(row.ga),
+        gd: Number(row.gd),
+        pts: Number(row.pts),
+      };
+    });
+  }
+
+  return standings;
+}
+
 export function transformWorldCupPayload(teams, groups) {
   const teamById = new Map(teams.map((t) => [String(t.id), t]));
   const groupResults = {};
@@ -47,6 +76,7 @@ export function transformWorldCupPayload(teams, groups) {
       Object.entries(groupResults).map(([id, g]) => [id, g.positions])
     ),
     meta: groupResults,
+    standings: buildGroupStandingsDetail(teams, groups),
   };
 }
 
