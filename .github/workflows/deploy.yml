@@ -31,6 +31,7 @@ jobs:
 
       - name: Fetch live group standings
         run: node scripts/fetch-live-results.mjs
+        # Script never fails the job — keeps last-known standings when worldcup26.ir is down.
 
       - name: Install dependencies
         run: npm install
