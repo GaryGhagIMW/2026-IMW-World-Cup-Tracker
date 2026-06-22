@@ -1,6 +1,7 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { KNOCKOUT_MATCHES } from '../data/knockout.js';
 import { isGroupStageClosed, isKnockoutSubmissionOpen } from './dates.js';
+import { isAdminUnlocked } from './admin.js';
 import { GROUPS } from '../data/groups.js';
 
 function flattenGroupsForSharePoint(groups) {
@@ -125,7 +126,7 @@ export async function submitToSharePoint(entry) {
 
 /** Submit knockout picks to the same Power Automate flow (phase: knockout). */
 export async function submitKnockoutToSharePoint(entry, submitPhase) {
-  if (!isKnockoutSubmissionOpen()) {
+  if (!isKnockoutSubmissionOpen() && !isAdminUnlocked()) {
     throw new Error('Knockout submission window is not open.');
   }
   return postToWebhook(buildKnockoutSharePointPayload(entry, submitPhase));

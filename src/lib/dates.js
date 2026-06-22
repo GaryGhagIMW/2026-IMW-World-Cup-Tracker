@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from '../data/config.js';
+import { isAdminUnlocked } from './admin.js';
 
 function parseDate(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -78,11 +79,11 @@ export function isGroupStageClosed() {
 }
 
 export function canEditKnockoutEarly(today = getToday()) {
-  return isWindowOpen('knockoutEarly', today);
+  return isAdminUnlocked() || isWindowOpen('knockoutEarly', today);
 }
 
 export function canEditKnockoutRest(today = getToday()) {
-  return isWindowOpen('knockoutRest', today);
+  return isAdminUnlocked() || isWindowOpen('knockoutRest', today);
 }
 
 export function canEditKnockoutMatch(match, today = getToday()) {

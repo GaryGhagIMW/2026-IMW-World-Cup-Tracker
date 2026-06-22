@@ -64,6 +64,7 @@ const LOGO_URL = assetUrl('assets/imw-logo-white.png');
 let state = loadState();
 let activeTab = 'home';
 let expandedLeaderboardKeys = new Set();
+let expandedKnockoutRounds = new Set(['r32']);
 let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
@@ -444,6 +445,15 @@ function collectKnockoutPicksFromDom(entry) {
   return entry;
 }
 
+function syncKnockoutRoundExpansion() {
+  document.querySelectorAll('details[data-knockout-round]').forEach((el) => {
+    const key = el.dataset.knockoutRound;
+    if (!key) return;
+    if (el.open) expandedKnockoutRounds.add(key);
+    else expandedKnockoutRounds.delete(key);
+  });
+}
+
 function renderKnockoutMatchCard(match, entry, bracketContext) {
   const { home, away } = resolveMatchParticipants(match, bracketContext);
   const editable = canEditKnockoutMatch(match);
@@ -499,43 +509,50 @@ function renderKnockout() {
       </p>
 
       ${
-        !isKnockoutSubmissionOpen()
+        !isKnockoutSubmissionOpen() && !isAdminUnlocked()
           ? `<div class="callout warning"><strong>Preview mode.</strong> Picks unlock ${formatDateRange(GAME_CONFIG.windows.knockoutEarly.start, GAME_CONFIG.windows.knockoutEarly.end)}. Save your name and email before submitting.</div>`
-          : !entry.name
-            ? `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`
-            : isSharePointConfigured()
-              ? `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`
-              : `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`
+          : isAdminUnlocked() && !isKnockoutSubmissionOpen()
+            ? `<div class="callout success"><strong>Admin test mode.</strong> Picks are unlocked for this session so you can run a test submission.</div>`
+            : !entry.name
+              ? `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`
+              : isSharePointConfigured()
+                ? `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`
+                : `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`
       }
 
       ${rounds
         .map((round) => {
           const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
+          const isOpen = expandedKnockoutRounds.has(round);
           return `
-        <section class="knockout-round">
-          <h3>${ROUND_LABELS[round]}</h3>
-          <div class="knockout-matches-grid">
-            ${matches.map((m) => renderKnockoutMatchCard(m, entry, bracketContext)).join('')}
+        <details class="knockout-round" data-knockout-round="${round}"${isOpen ? ' open' : ''}>
+          <summary class="knockout-round-heading">${ROUND_LABELS[round]}</summary>
+          <div class="knockout-round-body">
+            <div class="knockout-matches-grid">
+              ${matches.map((m) => renderKnockoutMatchCard(m, entry, bracketContext)).join('')}
+            </div>
           </div>
-        </section>`;
+        </details>`;
         })
         .join('')}
 
-      <section class="knockout-round">
-        <h3>Final score (tiebreaker only)</h3>
-        <p class="muted">Does not earn points — breaks ties on total points.</p>
-        <div class="final-score-row">
-          <label>Home goals
-            <input type="number" id="final-score-home" min="0" max="20" placeholder="0"
-              value="${entry.finalScore?.home ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
-          </label>
-          <span class="knockout-vs">–</span>
-          <label>Away goals
-            <input type="number" id="final-score-away" min="0" max="20" placeholder="0"
-              value="${entry.finalScore?.away ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
-          </label>
+      <details class="knockout-round" data-knockout-round="final-score"${expandedKnockoutRounds.has('final-score') ? ' open' : ''}>
+        <summary class="knockout-round-heading">Final score (tiebreaker only)</summary>
+        <div class="knockout-round-body">
+          <p class="muted">Does not earn points — breaks ties on total points.</p>
+          <div class="final-score-row">
+            <label>Home goals
+              <input type="number" id="final-score-home" min="0" max="20" placeholder="0"
+                value="${entry.finalScore?.home ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
+            </label>
+            <span class="knockout-vs">–</span>
+            <label>Away goals
+              <input type="number" id="final-score-away" min="0" max="20" placeholder="0"
+                value="${entry.finalScore?.away ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
+            </label>
+          </div>
         </div>
-      </section>
+      </details>
 
       <div class="actions-row">
         ${
@@ -720,7 +737,7 @@ function renderAdminPinGate() {
   return `
     <section class="panel">
       <h2>Admin access</h2>
-      <p class="muted">Enter the organizer PIN to manage results and override submission windows.</p>
+      <p class="muted">Enter the organizer PIN to manage results, override submission windows, and run knockout test entries.</p>
       <div class="pin-gate">
         <input type="password" id="admin-pin-input" placeholder="Admin PIN" maxlength="12" autocomplete="off" />
         <button class="primary" id="admin-pin-submit">Unlock admin</button>
@@ -848,6 +865,7 @@ function renderTabContent() {
 }
 
 function render() {
+  syncKnockoutRoundExpansion();
   const app = document.getElementById('app');
   const tabs = [
     { id: 'home', label: 'Home' },
