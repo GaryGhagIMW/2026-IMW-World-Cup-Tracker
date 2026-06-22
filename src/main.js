@@ -222,6 +222,7 @@ function renderHome() {
 
   return `
     <section class="hero-banner">
+      <span class="phase-badge">Knockout stage</span>
       <h1>2026 FIFA World Cup Pool</h1>
       <p class="tagline">${GAME_CONFIG.tagline}</p>
       <p class="subtitle">${GAME_CONFIG.subtitle}</p>
@@ -481,10 +482,8 @@ function renderKnockout() {
   const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
 
   return `
-    <section class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-        <h2>Knockout bracket</h2>
-      </div>
+    <section class="panel knockout-panel">
+      <h2>Knockout bracket</h2>
 
       <div class="callout">
         <strong>Two submission windows</strong>
