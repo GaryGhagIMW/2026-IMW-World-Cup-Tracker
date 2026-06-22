@@ -5,8 +5,8 @@
   --imw-navy: #0a1628;
   --bg: #162b48;
   --bg-elevated: #1e3558;
-  --surface: #ffffff;
-  --surface-2: #f4f8fc;
+  --surface: #f6f8fb;
+  --surface-2: #eef2f7;
   --border: #d0dce8;
   --border-subtle: rgba(255, 255, 255, 0.12);
   --text: #1a2332;
@@ -718,7 +718,7 @@ nav.tabs button.disabled-tab {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.85rem;
-  background: #fff;
+  background: var(--surface);
   transition: box-shadow 0.15s, border-color 0.15s;
 }
 

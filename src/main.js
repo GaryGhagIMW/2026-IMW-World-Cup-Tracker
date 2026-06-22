@@ -59,7 +59,7 @@ import {
   buildAdminWinnerOptionsHtml,
 } from './lib/bracket.js';
 
-const LOGO_URL = assetUrl('assets/imw-logo.png');
+const LOGO_URL = assetUrl('assets/imw-logo-white.png');
 
 let state = loadState();
 let activeTab = 'home';
