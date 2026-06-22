@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
+import { KNOCKOUT_MATCHES } from '../data/knockout.js';
 import { createEmptyKnockoutPredictions } from './scoring.js';
 
 export function isLeaderboardFetchConfigured() {
@@ -28,6 +29,43 @@ function parseSubmittedAt(value) {
     : date.toISOString();
 }
 
+function parseKnockoutFromRow(row) {
+  const knockout = createEmptyKnockoutPredictions();
+  let finalScore = { home: null, away: null };
+
+  const jsonRaw = row.EntryJson ?? row.entryJson;
+  if (jsonRaw) {
+    try {
+      const parsed = JSON.parse(jsonRaw);
+      if (parsed.knockout) {
+        Object.assign(knockout, parsed.knockout);
+      }
+      if (parsed.finalScore) {
+        finalScore = {
+          home: parsed.finalScore.home ?? null,
+          away: parsed.finalScore.away ?? null,
+        };
+      }
+    } catch {
+      // ignore malformed JSON
+    }
+  }
+
+  for (const match of KNOCKOUT_MATCHES) {
+    const col = `Knockout_${match.id.replace(/-/g, '_')}`;
+    if (row[col]) knockout[match.id] = row[col];
+  }
+
+  if (row.FinalScoreHome !== undefined && row.FinalScoreHome !== '') {
+    finalScore.home = Number(row.FinalScoreHome);
+  }
+  if (row.FinalScoreAway !== undefined && row.FinalScoreAway !== '') {
+    finalScore.away = Number(row.FinalScoreAway);
+  }
+
+  return { knockout, finalScore };
+}
+
 export function excelRowToEntry(row) {
   const name = (row.PlayerName ?? row.playerName ?? '').trim();
   if (!name) return null;
@@ -42,12 +80,14 @@ export function excelRowToEntry(row) {
     ];
   }
 
+  const { knockout, finalScore } = parseKnockoutFromRow(row);
+
   return {
     name,
     email: (row.Email ?? row.playerEmail ?? row.email ?? '').trim(),
     groups,
-    knockout: createEmptyKnockoutPredictions(),
-    finalScore: { home: null, away: null },
+    knockout,
+    finalScore,
     updatedAt: parseSubmittedAt(row.SubmittedAt ?? row.submittedAt),
   };
 }

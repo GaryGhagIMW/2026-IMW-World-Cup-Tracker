@@ -6,8 +6,8 @@ export const GAME_CONFIG = {
   organization: 'IMW Industries',
   website: 'https://www.imw.ca',
 
-  /** Current app phase — knockout UI unlocks after group stage. */
-  phase: 'groupStage',
+  /** Current app phase — sent with SharePoint / Excel submissions. */
+  phase: 'knockout',
 
   adminPin: '22002266',
 
@@ -23,6 +23,9 @@ export const GAME_CONFIG = {
     /** Paste URL for the "Get leaderboard" Power Automate flow after Step 4 in docs/sharepoint-setup.md. Leave blank until the list branch is configured — do not use the submit URL here before that. */
     leaderboardFetchUrl: '',
     listName: 'World Cup 2026 Entries',
+    /** OneDrive path for knockout picks Excel (see docs/knockout-setup.md). */
+    knockoutExcelPath: 'World Cup 2026 Pool/Knockout Entries.xlsx',
+    knockoutTableName: 'KnockoutEntries',
   },
 
   scoring: {
@@ -95,5 +98,16 @@ export function getMaxGroupPoints() {
     12 *
     (4 * GAME_CONFIG.scoring.group.perPosition +
       GAME_CONFIG.scoring.group.winnerBonus)
+  );
+}
+
+export function getMaxKnockoutPoints() {
+  const weights = GAME_CONFIG.scoring.knockout;
+  return (
+    16 * weights.r32 +
+    8 * weights.r16 +
+    4 * weights.qf +
+    2 * weights.sf +
+    1 * weights.final
   );
 }

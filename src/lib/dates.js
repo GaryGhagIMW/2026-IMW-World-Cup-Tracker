@@ -86,6 +86,16 @@ export function canEditKnockoutRest(today = getToday()) {
 }
 
 export function canEditKnockoutMatch(match, today = getToday()) {
-  if (match.earlyPick) return canEditKnockoutEarly(today);
+  if (match.earlyPick) {
+    return canEditKnockoutEarly(today) || canEditKnockoutRest(today);
+  }
   return canEditKnockoutRest(today);
+}
+
+export function canEditFinalScore(today = getToday()) {
+  return canEditKnockoutRest(today);
+}
+
+export function isKnockoutSubmissionOpen(today = getToday()) {
+  return canEditKnockoutEarly(today) || canEditKnockoutRest(today);
 }

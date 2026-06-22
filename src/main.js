@@ -1,17 +1,25 @@
-import { GAME_CONFIG, getMaxGroupPoints } from './data/config.js';
+import { GAME_CONFIG, getMaxGroupPoints, getMaxKnockoutPoints, ROUND_LABELS, ROUND_POINTS } from './data/config.js';
 import { GROUPS, getTeamName } from './data/groups.js';
+import { KNOCKOUT_MATCHES } from './data/knockout.js';
 import {
   formatDateRange,
   getWindowStatus,
-  canEditGroupStage,
   isGroupStageClosed,
+  canEditKnockoutEarly,
+  canEditKnockoutRest,
+  canEditKnockoutMatch,
+  canEditFinalScore,
+  isKnockoutSubmissionOpen,
 } from './lib/dates.js';
 import {
   createEmptyEntry,
   createEmptyResults,
   validateGroupPredictions,
-  rankGroupEntries,
-  scoreGroupPredictions,
+  validateKnockoutPredictions,
+  validateFinalScore,
+  rankEntries,
+  scoreEntry,
+  countKnockoutPicks,
 } from './lib/scoring.js';
 import {
   loadState,
@@ -30,6 +38,7 @@ import {
 import {
   isSharePointConfigured,
   submitToSharePoint,
+  submitKnockoutToSharePoint,
 } from './lib/sharepoint.js';
 import {
   fetchLeaderboardEntries,
@@ -43,6 +52,12 @@ import {
   isLiveResultsEnabled,
 } from './lib/live-results.js';
 import { assetUrl } from './lib/base.js';
+import {
+  resolveMatchParticipants,
+  buildWinnerOptionsHtml,
+  getBracketContext,
+  buildAdminWinnerOptionsHtml,
+} from './lib/bracket.js';
 
 const LOGO_URL = assetUrl('assets/imw-logo.png');
 
@@ -249,19 +264,19 @@ function renderHome() {
         <li>Enter your name and IMW email, then save.</li>
         <li>Track live group rankings on the <strong>Group Rankings</strong> tab.</li>
         <li>See the <strong>Rules</strong> tab for scoring details.</li>
+        <li>Submit knockout picks on the <strong>Knockout</strong> tab (opens June 25).</li>
         <li>Track standings on the <strong>Leaderboard</strong>.</li>
       </ol>
     </section>
 
     <section class="panel upcoming-phase">
-      <h2>Coming next — Knockout stage</h2>
+      <h2>Phase 2 — Knockout stage</h2>
       <p class="muted">
-        You will only need to pick game winners for this round. The knockout stage is split into two phases since this round begins on a weekend:
+        Pick the winner of each knockout game on the <strong>Knockout</strong> tab. Two submission windows:
       </p>
       <ul class="muted">
-        <li><strong>June 25–26:</strong> Pick the winners of the first 3 Round of 32 games.</li>
-        <li><strong>June 29:</strong> Pick game winners for the balance of the Round of 32 and all remaining rounds.</li>
-        <li><strong>Final score:</strong> Guess the score of the Final game (tiebreaker only).</li>
+        <li><strong>June 25–26:</strong> First 3 Round of 32 games ${renderStatusBadge('knockoutEarly')}</li>
+        <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
       </ul>
       <p class="muted">See the <strong>Rules</strong> tab for scoring.</p>
     </section>
@@ -413,33 +428,129 @@ function renderGroups() {
   `;
 }
 
-function renderKnockoutComingSoon() {
+function collectKnockoutPicksFromDom(entry) {
+  document.querySelectorAll('[data-knockout-match]').forEach((sel) => {
+    entry.knockout[sel.dataset.knockoutMatch] = sel.value;
+  });
+  const homeInput = document.getElementById('final-score-home');
+  const awayInput = document.getElementById('final-score-away');
+  if (homeInput && awayInput) {
+    entry.finalScore.home =
+      homeInput.value === '' ? null : Number(homeInput.value);
+    entry.finalScore.away =
+      awayInput.value === '' ? null : Number(awayInput.value);
+  }
+  return entry;
+}
+
+function renderKnockoutMatchCard(match, entry, bracketContext) {
+  const { home, away } = resolveMatchParticipants(match, bracketContext);
+  const editable = canEditKnockoutMatch(match);
+  const pick = entry.knockout?.[match.id] ?? '';
+  const points = ROUND_POINTS[match.round];
+
   return `
-    <section class="panel coming-soon-panel">
-      <h2>Knockout stage</h2>
-      <p class="muted">
-        Pick the winning team for each knockout game. The first prediction window opens June 25th — before the on-field group stage has finished.
-        Bracket matchups will be set up by the organizer before each pick window opens.
-      </p>
-      <div class="timeline" style="max-width:560px;margin:1.5rem auto 0;text-align:left">
-        <div class="timeline-item">
-          <div>
-            <strong>Phase 1 — June 25–26</strong>
-            <div class="muted">Pick the winners of the first 3 Round of 32 games.</div>
-          </div>
-          <div>${formatDateRange(GAME_CONFIG.windows.knockoutEarly.start, GAME_CONFIG.windows.knockoutEarly.end)}</div>
-        </div>
-        <div class="timeline-item">
-          <div>
-            <strong>Phase 2 — June 29</strong>
-            <div class="muted">Pick winners for the balance of the Round of 32 and all remaining rounds, plus the Final score (tiebreaker).</div>
-          </div>
-          <div>${formatDateRange(GAME_CONFIG.windows.knockoutRest.start, GAME_CONFIG.windows.knockoutRest.end)}</div>
-        </div>
+    <article class="knockout-match${match.earlyPick ? ' early-pick' : ''}${editable ? '' : ' locked'}">
+      <header class="knockout-match-header">
+        <span class="knockout-match-label">${match.label}</span>
+        ${match.earlyPick ? '<span class="status-badge upcoming">Early pick</span>' : ''}
+        <span class="knockout-match-pts muted">${points} pt${points === 1 ? '' : 's'}</span>
+      </header>
+      <p class="muted knockout-match-desc">${match.description}</p>
+      <div class="knockout-match-teams">
+        <span class="knockout-team">${home.label}</span>
+        <span class="knockout-vs">vs</span>
+        <span class="knockout-team">${away.label}</span>
       </div>
-      <p class="muted" style="margin-top:1rem">See the <strong>Rules</strong> tab for scoring.</p>
-    </section>
-  `;
+      <label class="knockout-pick-label">
+        Winner
+        <select data-knockout-match="${match.id}" ${editable ? '' : 'disabled'}>
+          ${buildWinnerOptionsHtml(match, pick, bracketContext)}
+        </select>
+      </label>
+    </article>`;
+}
+
+function renderKnockout() {
+  const entry = ensureEntry();
+  const effectiveResults = getEffectiveResults(state);
+  const bracketContext = getBracketContext(state, effectiveResults);
+  const earlyOpen = canEditKnockoutEarly();
+  const restOpen = canEditKnockoutRest();
+  const picksCount = countKnockoutPicks(entry.knockout);
+  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
+
+  return `
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+        <h2>Knockout bracket</h2>
+      </div>
+
+      <div class="callout">
+        <strong>Two submission windows</strong>
+        <ul class="muted" style="margin:0.5rem 0 0;padding-left:1.2rem">
+          <li><strong>Phase 1 — June 25–26:</strong> First 3 Round of 32 games ${renderStatusBadge('knockoutEarly')}</li>
+          <li><strong>Phase 2 — June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
+        </ul>
+      </div>
+
+      <p class="muted">
+        ${picksCount} / ${KNOCKOUT_MATCHES.length} winners picked.
+        Matchups fill in from live group standings as groups are confirmed.
+      </p>
+
+      ${
+        !isKnockoutSubmissionOpen()
+          ? `<div class="callout warning"><strong>Preview mode.</strong> Picks unlock ${formatDateRange(GAME_CONFIG.windows.knockoutEarly.start, GAME_CONFIG.windows.knockoutEarly.end)}. Save your name and email before submitting.</div>`
+          : !entry.name
+            ? `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`
+            : isSharePointConfigured()
+              ? `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`
+              : `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`
+      }
+
+      ${rounds
+        .map((round) => {
+          const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
+          return `
+        <section class="knockout-round">
+          <h3>${ROUND_LABELS[round]}</h3>
+          <div class="knockout-matches-grid">
+            ${matches.map((m) => renderKnockoutMatchCard(m, entry, bracketContext)).join('')}
+          </div>
+        </section>`;
+        })
+        .join('')}
+
+      <section class="knockout-round">
+        <h3>Final score (tiebreaker only)</h3>
+        <p class="muted">Does not earn points — breaks ties on total points.</p>
+        <div class="final-score-row">
+          <label>Home goals
+            <input type="number" id="final-score-home" min="0" max="20" placeholder="0"
+              value="${entry.finalScore?.home ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
+          </label>
+          <span class="knockout-vs">–</span>
+          <label>Away goals
+            <input type="number" id="final-score-away" min="0" max="20" placeholder="0"
+              value="${entry.finalScore?.away ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
+          </label>
+        </div>
+      </section>
+
+      <div class="actions-row">
+        ${
+          earlyOpen
+            ? `<button class="primary" id="submit-knockout-early" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit early picks (3 games)'}</button>`
+            : ''
+        }
+        ${
+          restOpen
+            ? `<button class="primary" id="submit-knockout-full" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit all knockout picks'}</button>`
+            : ''
+        }
+      </div>
+    </section>`;
 }
 
 function leaderboardPlayerKey(row) {
@@ -471,6 +582,30 @@ function renderPlayerGroupPicks(groups) {
     </div>`;
 }
 
+function renderPlayerKnockoutPicks(knockout, bracketContext) {
+  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
+  return `
+    <div class="player-knockout-picks">
+      ${rounds
+        .map((round) => {
+          const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
+          return `
+        <section class="player-knockout-round">
+          <h4>${ROUND_LABELS[round]}</h4>
+          <ul class="player-picks-list">
+            ${matches
+              .map((match) => {
+                const pick = knockout?.[match.id];
+                return `<li><span class="player-picks-pos">${match.label.replace('Match ', 'M')}</span><span class="player-picks-team">${pick ? getTeamName(pick) : '—'}</span></li>`;
+              })
+              .join('')}
+          </ul>
+        </section>`;
+        })
+        .join('')}
+    </div>`;
+}
+
 function renderLeaderboard() {
   const results = getEffectiveResults(state);
   const entries = getLeaderboardEntries(state);
@@ -493,12 +628,14 @@ function renderLeaderboard() {
       </section>`;
   }
 
-  const ranked = rankGroupEntries(entries, results);
+  const ranked = rankEntries(entries, results);
+  const maxKnockout = getMaxKnockoutPoints();
+  const hasKnockoutResults = Object.values(results.knockout ?? {}).some(Boolean);
 
   return `
     <section class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-        <h2>Leaderboard — Group stage</h2>
+        <h2>Leaderboard</h2>
         <button class="ghost" id="refresh-leaderboard" ${isFetchingLeaderboard ? 'disabled' : ''}>
           ${isFetchingLeaderboard ? 'Refreshing…' : 'Refresh'}
         </button>
@@ -515,13 +652,19 @@ function renderLeaderboard() {
           ? `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} · synced from OneDrive</p>`
           : `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} registered</p>`
       }
+      ${
+        !hasKnockoutResults
+          ? '<p class="muted">Knockout points appear once knockout results are entered in Admin.</p>'
+          : ''
+      }
       <table class="score-table">
         <thead>
           <tr>
             <th>#</th>
             <th>Player</th>
-            <th>Group pts</th>
-            <th>Max</th>
+            <th>Group</th>
+            <th>KO</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -544,14 +687,25 @@ function renderLeaderboard() {
                   ${row.name}
                 </span>
               </td>
-              <td><strong>${row.groupPoints}</strong></td>
-              <td class="muted">${getMaxGroupPoints()}</td>
+              <td><strong>${row.groupPoints}</strong><span class="muted"> / ${getMaxGroupPoints()}</span></td>
+              <td><strong>${row.knockoutPoints}</strong><span class="muted"> / ${maxKnockout}</span></td>
+              <td><strong>${row.totalPoints}</strong></td>
             </tr>
             <tr class="leaderboard-details${expanded ? ' is-expanded' : ''}" data-leaderboard-details="${key}">
-              <td colspan="4">
+              <td colspan="5">
                 <div class="leaderboard-details-inner">
                   <p class="muted player-picks-heading">Group stage picks</p>
                   ${renderPlayerGroupPicks(row.groups)}
+                  ${
+                    countKnockoutPicks(row.knockout)
+                      ? `<p class="muted player-picks-heading" style="margin-top:1rem">Knockout picks</p>${renderPlayerKnockoutPicks(row.knockout)}`
+                      : ''
+                  }
+                  ${
+                    row.finalScore?.home != null && row.finalScore?.away != null
+                      ? `<p class="muted" style="margin-top:0.75rem">Final score pick: ${row.finalScore.home}–${row.finalScore.away}</p>`
+                      : ''
+                  }
                 </div>
               </td>
             </tr>`;
@@ -635,14 +789,41 @@ function renderAdmin() {
         <button class="ghost" id="clear-results">Clear results</button>
       </div>
 
+      <h3>Official knockout results</h3>
+      <p class="muted">Enter the actual winner of each knockout match for live scoring.</p>
+      <div class="knockout-admin-grid">
+        ${KNOCKOUT_MATCHES.map((match) => {
+          const bracketContext = getBracketContext(state, effectiveResults);
+          const winner = results.knockout?.[match.id] ?? '';
+          const options = buildAdminWinnerOptionsHtml(match, winner, {
+            ...bracketContext,
+            results,
+          });
+          return `
+          <label class="knockout-admin-row">
+            <span>${match.label} — ${match.description}</span>
+            <select data-result-knockout="${match.id}">${options}</select>
+          </label>`;
+        }).join('')}
+      </div>
+      <div class="final-score-row" style="margin-top:1rem">
+        <label>Final — home
+          <input type="number" id="result-final-home" min="0" max="20" value="${results.finalScore?.home ?? ''}" />
+        </label>
+        <span class="knockout-vs">–</span>
+        <label>Away
+          <input type="number" id="result-final-away" min="0" max="20" value="${results.finalScore?.away ?? ''}" />
+        </label>
+      </div>
+      <div class="actions-row">
+        <button class="primary" id="save-knockout-results">Save knockout results</button>
+      </div>
+
       ${
         state.entry?.name
           ? (() => {
-              const preview = scoreGroupPredictions(
-                state.entry.groups,
-                effectiveResults.groups
-              );
-              return `<p class="muted" style="margin-top:1rem">Preview — ${state.entry.name}: ${preview.points} / ${preview.maxPoints} group pts</p>`;
+              const preview = scoreEntry(state.entry, effectiveResults);
+              return `<p class="muted" style="margin-top:1rem">Preview — ${state.entry.name}: ${preview.groupPoints} group + ${preview.knockoutPoints} KO = ${preview.totalPoints} total</p>`;
             })()
           : ''
       }
@@ -657,7 +838,7 @@ function renderTabContent() {
     case 'groups':
       return renderGroups();
     case 'knockout':
-      return renderKnockoutComingSoon();
+      return renderKnockout();
     case 'leaderboard':
       return renderLeaderboard();
     case 'admin':
@@ -673,7 +854,7 @@ function render() {
     { id: 'home', label: 'Home' },
     { id: 'rules', label: 'Rules' },
     { id: 'groups', label: 'Group Rankings' },
-    { id: 'knockout', label: 'Knockout', soon: true },
+    { id: 'knockout', label: 'Knockout' },
     { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'admin', label: 'Admin' },
   ];
@@ -820,6 +1001,69 @@ function bindEvents() {
     }
   });
 
+  async function submitKnockoutPicks(submitPhase) {
+    const entry = collectKnockoutPicksFromDom(ensureEntry());
+    if (!entry.name) {
+      showToast('Save your name first.', true);
+      return;
+    }
+
+    const bracketContext = getBracketContext(state, getEffectiveResults(state));
+    const pickError = validateKnockoutPredictions(entry.knockout, {
+      submitPhase,
+      bracketContext,
+    });
+    if (pickError) {
+      showToast(pickError, true);
+      return;
+    }
+
+    if (submitPhase === 'full') {
+      const scoreError = validateFinalScore(entry.finalScore);
+      if (scoreError) {
+        showToast(scoreError, true);
+        return;
+      }
+    }
+
+    isSubmitting = true;
+    render();
+
+    try {
+      await submitKnockoutToSharePoint(entry, submitPhase);
+      state.entry = entry;
+      state.allEntries = addOrUpdateEntry(state.allEntries, entry);
+      saveState(state);
+      showToast(
+        submitPhase === 'early'
+          ? `Early knockout picks submitted — ${entry.name}`
+          : `Knockout picks submitted — ${entry.name}`
+      );
+      await refreshLeaderboard(true);
+    } catch (err) {
+      showToast(err.message || 'Knockout submission failed.', true);
+    } finally {
+      isSubmitting = false;
+      render();
+    }
+  }
+
+  document.getElementById('submit-knockout-early')?.addEventListener('click', () => {
+    submitKnockoutPicks('early');
+  });
+
+  document.getElementById('submit-knockout-full')?.addEventListener('click', () => {
+    submitKnockoutPicks('full');
+  });
+
+  document.querySelectorAll('[data-knockout-match]').forEach((sel) => {
+    sel.addEventListener('change', () => {
+      collectKnockoutPicksFromDom(ensureEntry());
+      saveState(state);
+      if (activeTab === 'knockout') render();
+    });
+  });
+
   document.querySelectorAll('[data-group-pos]').forEach((sel) => {
     sel.addEventListener('change', () => {
       const card = sel.closest('.group-card');
@@ -875,7 +1119,9 @@ function bindEvents() {
   });
 
   document.getElementById('export-entry')?.addEventListener('click', () => {
-    const entry = collectGroupPicksFromDom(ensureEntry());
+    const entry = collectKnockoutPicksFromDom(
+      collectGroupPicksFromDom(ensureEntry())
+    );
     if (!entry.name) {
       showToast('Save your name first.', true);
       return;
@@ -914,6 +1160,21 @@ function bindEvents() {
     state.results = createEmptyResults();
     persist();
     showToast('Results cleared.');
+  });
+
+  document.getElementById('save-knockout-results')?.addEventListener('click', () => {
+    const results = ensureResults();
+    document.querySelectorAll('[data-result-knockout]').forEach((sel) => {
+      results.knockout[sel.dataset.resultKnockout] = sel.value;
+    });
+    const home = document.getElementById('result-final-home')?.value;
+    const away = document.getElementById('result-final-away')?.value;
+    results.finalScore.home = home === '' ? null : Number(home);
+    results.finalScore.away = away === '' ? null : Number(away);
+    results.updatedAt = new Date().toISOString();
+    state.results = results;
+    persist();
+    showToast('Knockout results saved.');
   });
 
   document.querySelectorAll('[data-result-group]').forEach((sel) => {

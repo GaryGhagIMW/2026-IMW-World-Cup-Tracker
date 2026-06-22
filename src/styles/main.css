@@ -609,6 +609,135 @@ nav.tabs button.disabled-tab {
   flex: 1;
 }
 
+.knockout-round {
+  margin-top: 1.75rem;
+}
+
+.knockout-round h3 {
+  margin-bottom: 0.75rem;
+  color: var(--imw-blue);
+}
+
+.knockout-matches-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 700px) {
+  .knockout-matches-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .knockout-matches-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.knockout-match {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: #fff;
+}
+
+.knockout-match.early-pick {
+  border-color: var(--imw-blue);
+  box-shadow: 0 0 0 1px rgba(0, 74, 135, 0.08);
+}
+
+.knockout-match.locked {
+  opacity: 0.72;
+}
+
+.knockout-match-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.knockout-match-label {
+  font-weight: 700;
+  color: var(--imw-blue);
+}
+
+.knockout-match-pts {
+  margin-left: auto;
+  font-size: 0.82rem;
+}
+
+.knockout-match-desc {
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+}
+
+.knockout-match-teams {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+  font-size: 0.92rem;
+}
+
+.knockout-team {
+  font-weight: 600;
+}
+
+.knockout-vs {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.knockout-pick-label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.knockout-pick-label select {
+  width: 100%;
+}
+
+.final-score-row {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.final-score-row input {
+  width: 5rem;
+}
+
+.knockout-admin-grid {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.knockout-admin-row {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.player-knockout-round {
+  margin-top: 0.5rem;
+}
+
+.player-knockout-round h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  color: var(--imw-blue);
+}
+
 footer {
   margin-top: 2.5rem;
   padding-top: 1.25rem;

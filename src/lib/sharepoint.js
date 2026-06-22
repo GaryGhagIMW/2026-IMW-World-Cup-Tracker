@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../data/config.js';
-import { isGroupStageClosed } from './dates.js';
+import { KNOCKOUT_MATCHES } from '../data/knockout.js';
+import { isGroupStageClosed, isKnockoutSubmissionOpen } from './dates.js';
 import { GROUPS } from '../data/groups.js';
 
 function flattenGroupsForSharePoint(groups) {
@@ -14,22 +15,62 @@ function flattenGroupsForSharePoint(groups) {
   return flat;
 }
 
+function flattenKnockoutForSharePoint(knockout, finalScore) {
+  const flat = {};
+  for (const match of KNOCKOUT_MATCHES) {
+    const key = `Knockout_${match.id.replace(/-/g, '_')}`;
+    flat[key] = knockout?.[match.id] ?? '';
+  }
+  flat.FinalScoreHome =
+    finalScore?.home != null && finalScore.home !== '' ? finalScore.home : '';
+  flat.FinalScoreAway =
+    finalScore?.away != null && finalScore.away !== '' ? finalScore.away : '';
+  return flat;
+}
+
 export function buildSharePointPayload(entry) {
   const submittedAt = new Date().toISOString();
   return {
     playerName: entry.name,
     playerEmail: entry.email ?? '',
     submittedAt,
-    phase: GAME_CONFIG.phase,
+    phase: 'groupStage',
+    action: 'submitGroup',
     groups: entry.groups,
     entryJson: JSON.stringify({
       name: entry.name,
       email: entry.email ?? '',
       groups: entry.groups,
       submittedAt,
-      phase: GAME_CONFIG.phase,
+      phase: 'groupStage',
     }),
     ...flattenGroupsForSharePoint(entry.groups),
+  };
+}
+
+export function buildKnockoutSharePointPayload(entry, submitPhase) {
+  const submittedAt = new Date().toISOString();
+  return {
+    playerName: entry.name,
+    playerEmail: entry.email ?? '',
+    submittedAt,
+    phase: 'knockout',
+    submitPhase,
+    action: 'submitKnockout',
+    groups: entry.groups,
+    knockout: entry.knockout,
+    finalScore: entry.finalScore,
+    entryJson: JSON.stringify({
+      name: entry.name,
+      email: entry.email ?? '',
+      groups: entry.groups,
+      knockout: entry.knockout,
+      finalScore: entry.finalScore,
+      submittedAt,
+      phase: 'knockout',
+      submitPhase,
+    }),
+    ...flattenKnockoutForSharePoint(entry.knockout, entry.finalScore),
   };
 }
 
@@ -38,16 +79,7 @@ export function isSharePointConfigured() {
   return GAME_CONFIG.sharepoint.enabled && Boolean(url);
 }
 
-/**
- * Submit group-stage entry to SharePoint via a thin HTTP gateway flow.
- * SharePoint List is the system of record; Power Automate (optional) only
- * receives the POST and creates the list item — no local file required.
- */
-export async function submitToSharePoint(entry) {
-  if (isGroupStageClosed()) {
-    throw new Error('Group stage entries are closed. Submissions are no longer accepted.');
-  }
-
+async function postToWebhook(payload) {
   const webhookUrl = GAME_CONFIG.sharepoint.webhookUrl?.trim();
   if (!webhookUrl) {
     throw new Error(
@@ -55,10 +87,7 @@ export async function submitToSharePoint(entry) {
     );
   }
 
-  const payload = buildSharePointPayload(entry);
   const body = JSON.stringify(payload);
-
-  // Try standard JSON POST first, then text/plain to avoid CORS preflight.
   const attempts = [
     { headers: { 'Content-Type': 'application/json' }, body },
     { headers: { 'Content-Type': 'text/plain' }, body },
@@ -82,6 +111,24 @@ export async function submitToSharePoint(entry) {
   }
 
   throw lastError ?? new Error('Could not reach SharePoint gateway.');
+}
+
+/**
+ * Submit group-stage entry to SharePoint via a thin HTTP gateway flow.
+ */
+export async function submitToSharePoint(entry) {
+  if (isGroupStageClosed()) {
+    throw new Error('Group stage entries are closed. Submissions are no longer accepted.');
+  }
+  return postToWebhook(buildSharePointPayload(entry));
+}
+
+/** Submit knockout picks to the same Power Automate flow (phase: knockout). */
+export async function submitKnockoutToSharePoint(entry, submitPhase) {
+  if (!isKnockoutSubmissionOpen()) {
+    throw new Error('Knockout submission window is not open.');
+  }
+  return postToWebhook(buildKnockoutSharePointPayload(entry, submitPhase));
 }
 
 export function getSharePointListHint() {

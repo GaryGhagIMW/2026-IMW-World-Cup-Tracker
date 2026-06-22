@@ -1,4 +1,6 @@
 import { POOL_ENTRIES } from '../data/pool-entries.js';
+import { KNOCKOUT_MATCHES } from '../data/knockout.js';
+import { createEmptyKnockoutPredictions } from './scoring.js';
 
 const STORAGE_KEY = 'imw-wc-2026';
 
@@ -19,6 +21,26 @@ export function getLeaderboardEntries(state = {}) {
   return dedupeEntriesByEmail(merged);
 }
 
+function mergeEntryData(existing, incoming) {
+  const hasKnockout = KNOCKOUT_MATCHES.some((m) => incoming.knockout?.[m.id]);
+  const hasFinal =
+    incoming.finalScore?.home != null && incoming.finalScore?.away != null;
+
+  return {
+    ...existing,
+    ...incoming,
+    groups: incoming.groups ?? existing.groups,
+    knockout: hasKnockout
+      ? {
+          ...(existing.knockout ?? createEmptyKnockoutPredictions()),
+          ...incoming.knockout,
+        }
+      : existing.knockout ?? incoming.knockout ?? createEmptyKnockoutPredictions(),
+    finalScore: hasFinal ? incoming.finalScore : existing.finalScore ?? incoming.finalScore,
+    updatedAt: incoming.updatedAt ?? existing.updatedAt,
+  };
+}
+
 function dedupeEntriesByEmail(entries) {
   const byEmail = new Map();
   for (const entry of entries) {
@@ -32,10 +54,13 @@ function dedupeEntriesByEmail(entries) {
       byEmail.set(email, entry);
       continue;
     }
+    const merged = mergeEntryData(existing, entry);
     const existingAllLower = existing.name === existing.name.toLowerCase();
     const entryAllLower = entry.name === entry.name.toLowerCase();
     if (existingAllLower && !entryAllLower) {
-      byEmail.set(email, entry);
+      byEmail.set(email, merged);
+    } else {
+      byEmail.set(email, mergeEntryData(entry, existing));
     }
   }
   return [...byEmail.values()].sort((a, b) => a.name.localeCompare(b.name));

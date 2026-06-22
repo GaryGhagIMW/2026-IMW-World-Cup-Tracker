@@ -1,6 +1,11 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
-import { KNOCKOUT_MATCHES } from '../data/knockout.js';
+import {
+  KNOCKOUT_MATCHES,
+  getEarlyKnockoutMatches,
+} from '../data/knockout.js';
+import { getValidWinnersForMatch } from './bracket.js';
+import { canEditKnockoutEarly, canEditKnockoutRest } from './dates.js';
 
 function scoreDifference(actual, predicted) {
   if (
@@ -120,7 +125,13 @@ export function scoreEntry(entry, results) {
 }
 
 export function rankEntries(entries, results) {
-  const scored = entries.map((entry) => scoreEntry(entry, results));
+  const scored = entries.map((entry) => ({
+    ...scoreEntry(entry, results),
+    email: entry.email ?? '',
+    groups: entry.groups,
+    knockout: entry.knockout,
+    finalScore: entry.finalScore,
+  }));
 
   scored.sort((a, b) => {
     if (b.totalPoints !== a.totalPoints) {
@@ -177,6 +188,42 @@ export function validateGroupPredictions(groups) {
     }
   }
   return null;
+}
+
+export function validateKnockoutPredictions(
+  knockout,
+  { submitPhase = 'full', bracketContext = {} } = {}
+) {
+  const matches =
+    submitPhase === 'early' ? getEarlyKnockoutMatches() : KNOCKOUT_MATCHES;
+
+  for (const match of matches) {
+    const pick = knockout?.[match.id];
+    if (!pick) {
+      return `Pick a winner for ${match.label} (${match.description}).`;
+    }
+
+    const valid = getValidWinnersForMatch(match, bracketContext);
+    if (valid.length && !valid.includes(pick)) {
+      return `Invalid pick for ${match.label}.`;
+    }
+  }
+
+  return null;
+}
+
+export function validateFinalScore(finalScore) {
+  if (finalScore?.home == null || finalScore?.away == null) {
+    return 'Enter your Final score prediction (home and away goals).';
+  }
+  if (finalScore.home < 0 || finalScore.away < 0) {
+    return 'Final score must be zero or greater.';
+  }
+  return null;
+}
+
+export function countKnockoutPicks(knockout) {
+  return KNOCKOUT_MATCHES.filter((m) => Boolean(knockout?.[m.id])).length;
 }
 
 export function rankGroupEntries(entries, results) {
