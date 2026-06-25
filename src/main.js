@@ -220,6 +220,10 @@ function countCompletedGroups(groups) {
 function renderHome() {
   const groupWindow = GAME_CONFIG.windows.groupStage;
   const groupClosed = isGroupStageClosed();
+  const earlyKnockoutOpen = canEditKnockoutEarly();
+  const knockoutTabHint = earlyKnockoutOpen
+    ? 'Submit your first 3 Round of 32 picks on the <strong>Knockout</strong> tab (open now through June 26).'
+    : 'Submit knockout picks on the <strong>Knockout</strong> tab when your window opens.';
 
   return `
     <section class="hero-banner">
@@ -266,13 +270,18 @@ function renderHome() {
         <li>Enter your name and IMW email, then save.</li>
         <li>Track live group rankings on the <strong>Group Rankings</strong> tab.</li>
         <li>See the <strong>Rules</strong> tab for scoring details.</li>
-        <li>Submit knockout picks on the <strong>Knockout</strong> tab (opens June 25).</li>
+        <li>${knockoutTabHint}</li>
         <li>Track standings on the <strong>Leaderboard</strong>.</li>
       </ol>
     </section>
 
-    <section class="panel upcoming-phase">
+    <section class="panel${earlyKnockoutOpen ? '' : ' upcoming-phase'}">
       <h2>Phase 2 — Knockout stage</h2>
+      ${
+        earlyKnockoutOpen
+          ? `<div class="callout success"><strong>Early knockout picks are open now.</strong> Submit the first 3 Round of 32 games by June 26.</div>`
+          : ''
+      }
       <p class="muted">
         Pick the winner of each knockout game on the <strong>Knockout</strong> tab. Two submission windows:
       </p>
@@ -288,6 +297,9 @@ function renderHome() {
 function renderRules() {
   const g = GAME_CONFIG.scoring.group;
   const k = GAME_CONFIG.scoring.knockout;
+  const knockoutHeading = canEditKnockoutEarly()
+    ? 'Scoring — Knockout stage (early picks open)'
+    : 'Scoring — Knockout stage';
 
   return `
     <section class="panel">
@@ -298,7 +310,7 @@ function renderRules() {
         <li><strong>${g.winnerBonus} bonus point</strong> for correctly picking the group winner.</li>
       </ul>
 
-      <h2>Scoring — Knockout stage (opens June 25th)</h2>
+      <h2>${knockoutHeading}</h2>
       <p class="muted">Points awarded for selecting the correct winner of each game. Point values increase each round:</p>
       <ul>
         <li>Round of 32 — <strong>${k.r32} point</strong></li>
@@ -454,6 +466,28 @@ function syncKnockoutRoundExpansion() {
   });
 }
 
+function renderKnockoutSubmitCallout(entry) {
+  if (!isKnockoutSubmissionOpen() && !isAdminUnlocked()) {
+    return `<div class="callout warning"><strong>Preview mode.</strong> Early picks unlock ${formatDateRange(GAME_CONFIG.windows.knockoutEarly.start, GAME_CONFIG.windows.knockoutEarly.end)}. Save your name and email before submitting.</div>`;
+  }
+  if (isAdminUnlocked() && !isKnockoutSubmissionOpen()) {
+    return `<div class="callout success"><strong>Admin test mode.</strong> Picks are unlocked for this session so you can run a test submission.</div>`;
+  }
+  if (!entry.name) {
+    return `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`;
+  }
+  if (!isSharePointConfigured()) {
+    return `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`;
+  }
+  if (canEditKnockoutEarly() && !canEditKnockoutRest()) {
+    return `<div class="callout success"><strong>Early picks are open.</strong> Pick winners for the first 3 Round of 32 games and click <strong>Submit early picks (3 games)</strong> below.</div>`;
+  }
+  if (canEditKnockoutRest()) {
+    return `<div class="callout success"><strong>Knockout picks are open.</strong> Submit your remaining picks and Final score when ready.</div>`;
+  }
+  return `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`;
+}
+
 function renderKnockoutMatchCard(match, entry, bracketContext) {
   const { home, away } = resolveMatchParticipants(match, bracketContext);
   const editable = canEditKnockoutMatch(match);
@@ -508,17 +542,7 @@ function renderKnockout() {
         Matchups fill in from live group standings as groups are confirmed.
       </p>
 
-      ${
-        !isKnockoutSubmissionOpen() && !isAdminUnlocked()
-          ? `<div class="callout warning"><strong>Preview mode.</strong> Picks unlock ${formatDateRange(GAME_CONFIG.windows.knockoutEarly.start, GAME_CONFIG.windows.knockoutEarly.end)}. Save your name and email before submitting.</div>`
-          : isAdminUnlocked() && !isKnockoutSubmissionOpen()
-            ? `<div class="callout success"><strong>Admin test mode.</strong> Picks are unlocked for this session so you can run a test submission.</div>`
-            : !entry.name
-              ? `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`
-              : isSharePointConfigured()
-                ? `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`
-                : `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`
-      }
+      ${renderKnockoutSubmitCallout(entry)}
 
       ${rounds
         .map((round) => {

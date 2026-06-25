@@ -51,26 +51,34 @@ export function buildSharePointPayload(entry) {
 
 export function buildKnockoutSharePointPayload(entry, submitPhase) {
   const submittedAt = new Date().toISOString();
-  return {
-    playerName: entry.name,
-    playerEmail: entry.email ?? '',
-    submittedAt,
-    phase: 'knockout',
-    submitPhase,
-    action: 'submitKnockout',
+  const entryJson = JSON.stringify({
+    name: entry.name,
+    email: entry.email ?? '',
     groups: entry.groups,
     knockout: entry.knockout,
     finalScore: entry.finalScore,
-    entryJson: JSON.stringify({
-      name: entry.name,
-      email: entry.email ?? '',
-      groups: entry.groups,
-      knockout: entry.knockout,
-      finalScore: entry.finalScore,
-      submittedAt,
-      phase: 'knockout',
-      submitPhase,
-    }),
+    submittedAt,
+    phase: 'knockout',
+    submitPhase,
+  });
+
+  return {
+    action: 'submitKnockout',
+    phase: 'knockout',
+    submitPhase,
+    playerName: entry.name,
+    playerEmail: entry.email ?? '',
+    submittedAt,
+    groups: entry.groups,
+    knockout: entry.knockout,
+    finalScore: entry.finalScore,
+    entryJson,
+    /** Excel KnockoutEntries column names for Power Automate mapping */
+    PlayerName: entry.name,
+    Email: entry.email ?? '',
+    SubmittedAt: submittedAt,
+    SubmitPhase: submitPhase,
+    EntryJson: entryJson,
     ...flattenKnockoutForSharePoint(entry.knockout, entry.finalScore),
   };
 }

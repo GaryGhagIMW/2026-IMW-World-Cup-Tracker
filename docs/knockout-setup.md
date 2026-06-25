@@ -4,12 +4,12 @@ The **Knockout** tab is live in the app. Players submit picks through the same P
 
 ## What you need to do
 
-### 1. Create Knockout Entries Excel file
+### 1. Knockout Entries table (already in your workbook)
 
-In OneDrive (`World Cup 2026 Pool/`):
+In OneDrive (`World Cup 2026 Pool/Group Stage Entries.xlsx`):
 
-1. Create **Knockout Entries.xlsx**
-2. Add a table named **`KnockoutEntries`** with columns:
+1. Open the **`Knockout`** worksheet
+2. Confirm table **`KnockoutEntries`** with columns:
 
 | Column | Notes |
 |--------|--------|
@@ -18,11 +18,10 @@ In OneDrive (`World Cup 2026 Pool/`):
 | SubmittedAt | |
 | SubmitPhase | `early` or `full` |
 | EntryJson | Full JSON backup (recommended) |
-| Knockout_r32_1 … Knockout_final | Winner team code per match (optional flat columns) |
-| FinalScoreHome | Tiebreaker |
-| FinalScoreAway | Tiebreaker |
 
-> Minimum: `PlayerName`, `Email`, `SubmittedAt`, `EntryJson`
+> Minimum: `PlayerName`, `Email`, `SubmittedAt`, `SubmitPhase`, `EntryJson`
+
+To append manually (recovery): `.\scripts\append-knockout-entry.ps1 -PlayerName "Name" -Email "you@imw.ca" -SubmitPhase early -EntryJson '{...}'`
 
 ### 2. Update your existing Power Automate flow
 
@@ -54,7 +53,7 @@ IF action = list
   → existing list branch (Group Stage Entries.xlsx)
 
 ELSE IF action = submitKnockout  (or phase = knockout)
-  → Add row to Knockout Entries.xlsx / KnockoutEntries table
+  → Add row to Group Stage Entries.xlsx / Knockout worksheet / KnockoutEntries table
   → Response 200 { "status": "ok" }
 
 ELSE
@@ -67,11 +66,19 @@ Expression for knockout branch:
 @equals(triggerBody()?['action'], 'submitKnockout')
 ```
 
-Map dynamic content from the trigger to Excel columns. Store **EntryJson** — the app can parse knockout picks from it when syncing.
+Map dynamic content from the trigger to Excel columns (`PlayerName`, `Email`, `SubmittedAt`, `SubmitPhase`, `EntryJson`). The app sends both camelCase and PascalCase field names. Store **EntryJson** — the app can parse knockout picks from it when syncing.
+
+**Add a row into a table settings:**
+
+| Setting | Value |
+|---------|--------|
+| Location | OneDrive for Business |
+| File | `/World Cup 2026 Pool/Group Stage Entries.xlsx` |
+| Table | `KnockoutEntries` (Knockout sheet) |
 
 #### C. Save and test
 
-Use **Test** in Power Automate with a sample `submitKnockout` payload before June 25.
+Use **Test** in Power Automate with a sample `submitKnockout` payload before June 25, or run `.\scripts\test-knockout-webhook.ps1` from the repo.
 
 ## Submission windows (app-enforced)
 

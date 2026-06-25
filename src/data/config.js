@@ -23,8 +23,9 @@ export const GAME_CONFIG = {
     /** Paste URL for the "Get leaderboard" Power Automate flow after Step 4 in docs/sharepoint-setup.md. Leave blank until the list branch is configured — do not use the submit URL here before that. */
     leaderboardFetchUrl: '',
     listName: 'World Cup 2026 Entries',
-    /** OneDrive path for knockout picks Excel (see docs/knockout-setup.md). */
-    knockoutExcelPath: 'World Cup 2026 Pool/Knockout Entries.xlsx',
+    /** OneDrive workbook for knockout picks (Knockout sheet / KnockoutEntries table). */
+    knockoutExcelPath: 'World Cup 2026 Pool/Group Stage Entries.xlsx',
+    knockoutWorksheetName: 'Knockout',
     knockoutTableName: 'KnockoutEntries',
   },
 
