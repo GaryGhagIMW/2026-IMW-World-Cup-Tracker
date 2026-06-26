@@ -93,10 +93,28 @@ export function excelRowToEntry(row) {
 }
 
 export function rowsToEntries(rows) {
-  return normalizeRows(rows)
+  const entries = normalizeRows(rows)
     .map(excelRowToEntry)
-    .filter(Boolean)
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .filter(Boolean);
+  return dedupeEntriesByLatest(entries);
+}
+
+/** Keep the newest row per email when Excel has multiple submissions. */
+export function dedupeEntriesByLatest(entries) {
+  const byKey = new Map();
+  for (const entry of entries) {
+    const email = (entry.email ?? '').trim().toLowerCase();
+    const key = email || `name:${entry.name.toLowerCase()}`;
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, entry);
+      continue;
+    }
+    const existingAt = Date.parse(existing.updatedAt || 0) || 0;
+    const entryAt = Date.parse(entry.updatedAt || 0) || 0;
+    byKey.set(key, entryAt >= existingAt ? entry : existing);
+  }
+  return [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** Fetch all rows from the OneDrive Excel log via Power Automate. */

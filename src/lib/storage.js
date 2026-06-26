@@ -42,42 +42,41 @@ function mergeEntryData(existing, incoming) {
 }
 
 function dedupeEntriesByEmail(entries) {
-  const byEmail = new Map();
+  const byKey = new Map();
   for (const entry of entries) {
     const email = (entry.email ?? '').trim().toLowerCase();
-    if (!email) {
-      byEmail.set(`name:${entry.name.toLowerCase()}`, entry);
-      continue;
-    }
-    const existing = byEmail.get(email);
+    const key = email || `name:${entry.name.toLowerCase()}`;
+    const existing = byKey.get(key);
     if (!existing) {
-      byEmail.set(email, entry);
+      byKey.set(key, entry);
       continue;
     }
-    const merged = mergeEntryData(existing, entry);
-    const existingAllLower = existing.name === existing.name.toLowerCase();
-    const entryAllLower = entry.name === entry.name.toLowerCase();
-    if (existingAllLower && !entryAllLower) {
-      byEmail.set(email, merged);
-    } else {
-      byEmail.set(email, mergeEntryData(entry, existing));
-    }
+    const existingAt = Date.parse(existing.updatedAt || 0) || 0;
+    const entryAt = Date.parse(entry.updatedAt || 0) || 0;
+    const [older, newer] =
+      entryAt >= existingAt ? [existing, entry] : [entry, existing];
+    byKey.set(key, mergeEntryData(older, newer));
   }
-  return [...byEmail.values()].sort((a, b) => a.name.localeCompare(b.name));
+  return [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultState();
-    return { ...getDefaultState(), ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    // Live standings are fetched on each visit — do not restore stale per-browser snapshots.
+    delete parsed.liveResults;
+    delete parsed.liveResultsFetchedAt;
+    return { ...getDefaultState(), ...parsed };
   } catch {
     return getDefaultState();
   }
 }
 
 export function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const { liveResults, liveResultsFetchedAt, ...persisted } = state;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
 }
 
 export function getDefaultState() {

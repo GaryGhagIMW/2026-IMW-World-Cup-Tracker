@@ -87,8 +87,10 @@ async function refreshLiveResults(force = false) {
   if (!force && age < refreshMs) return;
 
   const affectsUi =
-    activeTab === 'leaderboard' || activeTab === 'groups';
-  if (activeTab === 'groups') isFetchingGroupStandings = true;
+    activeTab === 'leaderboard' || activeTab === 'groups' || activeTab === 'knockout';
+  if (activeTab === 'groups' || activeTab === 'knockout') {
+    isFetchingGroupStandings = true;
+  }
   if (affectsUi) render();
 
   try {
@@ -96,7 +98,6 @@ async function refreshLiveResults(force = false) {
     if (payload) {
       state.liveResults = payload;
       state.liveResultsFetchedAt = new Date().toISOString();
-      saveState(state);
     }
   } catch (err) {
     console.warn('Live results refresh failed:', err);
@@ -109,7 +110,9 @@ async function refreshLiveResults(force = false) {
 function startLiveResultsPolling() {
   stopLiveResultsPolling();
   if (!isLiveResultsEnabled()) return;
-  if (activeTab !== 'leaderboard' && activeTab !== 'groups') return;
+  if (activeTab !== 'leaderboard' && activeTab !== 'groups' && activeTab !== 'knockout') {
+    return;
+  }
 
   const refreshMs = GAME_CONFIG.liveResults?.refreshMs ?? 120_000;
   liveResultsTimer = setInterval(() => {
@@ -1264,6 +1267,12 @@ function bindEvents() {
     });
   });
 }
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  refreshLiveResults(true);
+  if (activeTab === 'leaderboard') refreshLeaderboard(true);
+});
 
 render();
 refreshLiveResults(true);

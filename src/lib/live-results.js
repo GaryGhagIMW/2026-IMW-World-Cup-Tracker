@@ -75,19 +75,46 @@ export function getResultsLabel(results, liveMeta) {
   return 'Using organizer-entered results.';
 }
 
-/** Fetch live standings — API first, bundled JSON fallback. */
+function scoreLivePayload(payload) {
+  if (!payload) return -1;
+  const groupsWithMatches = payload.groupsWithMatches ?? 0;
+  const updatedAt = payload.updatedAt ? Date.parse(payload.updatedAt) : 0;
+  return groupsWithMatches * 1_000_000_000_000 + updatedAt;
+}
+
+/** Prefer the payload with more group data; tie-break on updatedAt. */
+export function pickBestLiveResults(apiResult, fileResult) {
+  if (apiResult && fileResult) {
+    return scoreLivePayload(apiResult) >= scoreLivePayload(fileResult)
+      ? apiResult
+      : fileResult;
+  }
+  return apiResult ?? fileResult ?? null;
+}
+
+/** Fetch live standings — API and bundled JSON in parallel, pick the best snapshot. */
 export async function fetchLiveResults() {
   if (!isLiveResultsEnabled()) return null;
 
-  if (GAME_CONFIG.liveResults?.fetchFromApi !== false) {
-    try {
-      return await fetchWorldCupStandings();
-    } catch (err) {
-      console.warn('Live API fetch failed, using bundled file:', err);
-    }
-  }
+  const useApi = GAME_CONFIG.liveResults?.fetchFromApi !== false;
+  const [apiResult, fileResult] = await Promise.all([
+    useApi
+      ? fetchWorldCupStandings().catch((err) => {
+          console.warn('Live API fetch failed:', err);
+          return null;
+        })
+      : Promise.resolve(null),
+    fetchLiveResultsFile().catch((err) => {
+      console.warn('Bundled live-results fetch failed:', err);
+      return null;
+    }),
+  ]);
 
-  return fetchLiveResultsFile();
+  const best = pickBestLiveResults(apiResult, fileResult);
+  if (!best) {
+    throw new Error('Live standings unavailable (API and bundled file both failed).');
+  }
+  return best;
 }
 
 /** Load bundled live-results.json (updated by GitHub Action). */
@@ -116,5 +143,13 @@ export function getEffectiveResults(state) {
     return manual;
   }
 
-  return mergeResults(state.liveResults, manual);
+  // Manual admin overrides are local to one browser — only the organizer should
+  // see them while testing. Everyone else uses the same live feed for scoring.
+  const manualForMerge = state.isAdmin ? manual : {
+    groups: emptyGroupMap(),
+    knockout: {},
+    finalScore: { home: null, away: null },
+  };
+
+  return mergeResults(state.liveResults, manualForMerge);
 }
