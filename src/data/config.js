@@ -61,6 +61,14 @@ export const GAME_CONFIG = {
       description:
         'Opens after group stage — pick winners for the first three Round of 32 matches.',
     },
+    knockoutBatch2: {
+      id: 'knockoutBatch2',
+      label: 'Match 52 (Brazil vs Japan)',
+      start: '2026-06-27',
+      end: '2026-06-28',
+      description:
+        'Pick the winner of Match 52 once Groups C and F are confirmed.',
+    },
     knockoutRest: {
       id: 'knockoutRest',
       label: 'Remaining knockout picks',

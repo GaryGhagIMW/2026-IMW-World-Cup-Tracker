@@ -3,6 +3,7 @@ import { GROUPS } from '../data/groups.js';
 import {
   KNOCKOUT_MATCHES,
   getEarlyKnockoutMatches,
+  getBatch2KnockoutMatches,
 } from '../data/knockout.js';
 import { getValidWinnersForMatch } from './bracket.js';
 import { canEditKnockoutEarly, canEditKnockoutRest } from './dates.js';
@@ -195,7 +196,11 @@ export function validateKnockoutPredictions(
   { submitPhase = 'full', bracketContext = {} } = {}
 ) {
   const matches =
-    submitPhase === 'early' ? getEarlyKnockoutMatches() : KNOCKOUT_MATCHES;
+    submitPhase === 'early'
+      ? getEarlyKnockoutMatches()
+      : submitPhase === 'batch2'
+        ? [...getEarlyKnockoutMatches(), ...getBatch2KnockoutMatches()]
+        : KNOCKOUT_MATCHES;
 
   for (const match of matches) {
     const pick = knockout?.[match.id];

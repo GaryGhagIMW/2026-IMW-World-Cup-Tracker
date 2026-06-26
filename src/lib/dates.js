@@ -82,6 +82,10 @@ export function canEditKnockoutEarly(today = getToday()) {
   return isAdminUnlocked() || isWindowOpen('knockoutEarly', today);
 }
 
+export function canEditKnockoutBatch2(today = getToday()) {
+  return isAdminUnlocked() || isWindowOpen('knockoutBatch2', today);
+}
+
 export function canEditKnockoutRest(today = getToday()) {
   return isAdminUnlocked() || isWindowOpen('knockoutRest', today);
 }
@@ -89,6 +93,9 @@ export function canEditKnockoutRest(today = getToday()) {
 export function canEditKnockoutMatch(match, today = getToday()) {
   if (match.earlyPick) {
     return canEditKnockoutEarly(today) || canEditKnockoutRest(today);
+  }
+  if (match.batch2Pick) {
+    return canEditKnockoutBatch2(today) || canEditKnockoutRest(today);
   }
   return canEditKnockoutRest(today);
 }
@@ -98,5 +105,9 @@ export function canEditFinalScore(today = getToday()) {
 }
 
 export function isKnockoutSubmissionOpen(today = getToday()) {
-  return canEditKnockoutEarly(today) || canEditKnockoutRest(today);
+  return (
+    canEditKnockoutEarly(today) ||
+    canEditKnockoutBatch2(today) ||
+    canEditKnockoutRest(today)
+  );
 }

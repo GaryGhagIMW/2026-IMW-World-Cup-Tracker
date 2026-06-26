@@ -85,6 +85,7 @@ Use **Test** in Power Automate with a sample `submitKnockout` payload before Jun
 | Window | Dates | Required picks |
 |--------|-------|----------------|
 | **Early** | June 25–26 | First 3 R32 games (Matches 49–51) |
+| **Batch 2** | June 27–28 | Match 52 (Brazil vs Japan) |
 | **Full** | June 29 – July 18 | All 32 knockout games + Final score |
 
 ## Scoring

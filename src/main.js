@@ -6,6 +6,7 @@ import {
   getWindowStatus,
   isGroupStageClosed,
   canEditKnockoutEarly,
+  canEditKnockoutBatch2,
   canEditKnockoutRest,
   canEditKnockoutMatch,
   canEditFinalScore,
@@ -56,6 +57,7 @@ import {
   resolveMatchParticipants,
   buildWinnerOptionsHtml,
   getBracketContext,
+  getPickBracketContext,
   buildAdminWinnerOptionsHtml,
 } from './lib/bracket.js';
 
@@ -221,9 +223,12 @@ function renderHome() {
   const groupWindow = GAME_CONFIG.windows.groupStage;
   const groupClosed = isGroupStageClosed();
   const earlyKnockoutOpen = canEditKnockoutEarly();
+  const batch2KnockoutOpen = canEditKnockoutBatch2();
   const knockoutTabHint = earlyKnockoutOpen
     ? 'Submit your first 3 Round of 32 picks on the <strong>Knockout</strong> tab (open now through June 26).'
-    : 'Submit knockout picks on the <strong>Knockout</strong> tab when your window opens.';
+    : batch2KnockoutOpen
+      ? 'Submit your <strong>Match 52</strong> pick on the <strong>Knockout</strong> tab (open now through June 28).'
+      : 'Submit knockout picks on the <strong>Knockout</strong> tab when your window opens.';
 
   return `
     <section class="hero-banner">
@@ -275,18 +280,21 @@ function renderHome() {
       </ol>
     </section>
 
-    <section class="panel${earlyKnockoutOpen ? '' : ' upcoming-phase'}">
+    <section class="panel${earlyKnockoutOpen || batch2KnockoutOpen ? '' : ' upcoming-phase'}">
       <h2>Phase 2 — Knockout stage</h2>
       ${
         earlyKnockoutOpen
           ? `<div class="callout success"><strong>Early knockout picks are open now.</strong> Submit the first 3 Round of 32 games by June 26.</div>`
-          : ''
+          : batch2KnockoutOpen
+            ? `<div class="callout success"><strong>Match 52 is open now.</strong> Brazil vs Japan — submit on the Knockout tab by June 28.</div>`
+            : ''
       }
       <p class="muted">
-        Pick the winner of each knockout game on the <strong>Knockout</strong> tab. Two submission windows:
+        Pick the winner of each knockout game on the <strong>Knockout</strong> tab. Submission windows:
       </p>
       <ul class="muted">
-        <li><strong>June 25–26:</strong> First 3 Round of 32 games ${renderStatusBadge('knockoutEarly')}</li>
+        <li><strong>June 25–26:</strong> Matches 49–51 ${renderStatusBadge('knockoutEarly')}</li>
+        <li><strong>June 27–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
         <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
       </ul>
       <p class="muted">See the <strong>Rules</strong> tab for scoring.</p>
@@ -479,11 +487,14 @@ function renderKnockoutSubmitCallout(entry) {
   if (!isSharePointConfigured()) {
     return `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`;
   }
-  if (canEditKnockoutEarly() && !canEditKnockoutRest()) {
+  if (canEditKnockoutEarly() && !canEditKnockoutBatch2() && !canEditKnockoutRest()) {
     return `<div class="callout success"><strong>Early picks are open.</strong> Pick winners for the first 3 Round of 32 games and click <strong>Submit early picks (3 games)</strong> below.</div>`;
   }
+  if (canEditKnockoutBatch2() && !canEditKnockoutRest()) {
+    return `<div class="callout success"><strong>Match 52 is open.</strong> Your earlier picks stay as entered — confirm Matches 49–51 still look correct, pick <strong>Match 52 (Brazil vs Japan)</strong>, then click <strong>Submit Match 52 pick</strong>. Later rounds follow your picks, not live results.</div>`;
+  }
   if (canEditKnockoutRest()) {
-    return `<div class="callout success"><strong>Knockout picks are open.</strong> Submit your remaining picks and Final score when ready.</div>`;
+    return `<div class="callout success"><strong>Knockout picks are open.</strong> Submit your remaining picks and Final score when ready. Later rounds follow your own picks.</div>`;
   }
   return `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`;
 }
@@ -495,10 +506,11 @@ function renderKnockoutMatchCard(match, entry, bracketContext) {
   const points = ROUND_POINTS[match.round];
 
   return `
-    <article class="knockout-match${match.earlyPick ? ' early-pick' : ''}${editable ? '' : ' locked'}">
+    <article class="knockout-match${match.earlyPick ? ' early-pick' : ''}${match.batch2Pick ? ' batch2-pick' : ''}${editable ? '' : ' locked'}">
       <header class="knockout-match-header">
         <span class="knockout-match-label">${match.label}</span>
         ${match.earlyPick ? '<span class="status-badge upcoming">Early pick</span>' : ''}
+        ${match.batch2Pick ? '<span class="status-badge open">Open now</span>' : ''}
         <span class="knockout-match-pts muted">${points} pt${points === 1 ? '' : 's'}</span>
       </header>
       <p class="muted knockout-match-desc">${match.description}</p>
@@ -519,8 +531,9 @@ function renderKnockoutMatchCard(match, entry, bracketContext) {
 function renderKnockout() {
   const entry = ensureEntry();
   const effectiveResults = getEffectiveResults(state);
-  const bracketContext = getBracketContext(state, effectiveResults);
+  const bracketContext = getPickBracketContext(state, effectiveResults);
   const earlyOpen = canEditKnockoutEarly();
+  const batch2Open = canEditKnockoutBatch2();
   const restOpen = canEditKnockoutRest();
   const picksCount = countKnockoutPicks(entry.knockout);
   const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
@@ -530,16 +543,17 @@ function renderKnockout() {
       <h2>Knockout bracket</h2>
 
       <div class="callout">
-        <strong>Two submission windows</strong>
+        <strong>Submission windows</strong>
         <ul class="muted" style="margin:0.5rem 0 0;padding-left:1.2rem">
-          <li><strong>Phase 1 — June 25–26:</strong> First 3 Round of 32 games ${renderStatusBadge('knockoutEarly')}</li>
-          <li><strong>Phase 2 — June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
+          <li><strong>June 25–26:</strong> Matches 49–51 ${renderStatusBadge('knockoutEarly')}</li>
+          <li><strong>June 27–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
+          <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
         </ul>
       </div>
 
       <p class="muted">
         ${picksCount} / ${KNOCKOUT_MATCHES.length} winners picked.
-        Matchups fill in from live group standings as groups are confirmed.
+        Round of 32 teams come from live group standings; later rounds follow <strong>your picks</strong>.
       </p>
 
       ${renderKnockoutSubmitCallout(entry)}
@@ -582,6 +596,11 @@ function renderKnockout() {
         ${
           earlyOpen
             ? `<button class="primary" id="submit-knockout-early" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit early picks (3 games)'}</button>`
+            : ''
+        }
+        ${
+          batch2Open && !restOpen
+            ? `<button class="primary" id="submit-knockout-batch2" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit Match 52 pick'}</button>`
             : ''
         }
         ${
@@ -1049,7 +1068,7 @@ function bindEvents() {
       return;
     }
 
-    const bracketContext = getBracketContext(state, getEffectiveResults(state));
+    const bracketContext = getPickBracketContext(state, getEffectiveResults(state));
     const pickError = validateKnockoutPredictions(entry.knockout, {
       submitPhase,
       bracketContext,
@@ -1078,7 +1097,9 @@ function bindEvents() {
       showToast(
         submitPhase === 'early'
           ? `Early knockout picks submitted — ${entry.name}`
-          : `Knockout picks submitted — ${entry.name}`
+          : submitPhase === 'batch2'
+            ? `Match 52 pick submitted — ${entry.name}`
+            : `Knockout picks submitted — ${entry.name}`
       );
       await refreshLeaderboard(true);
     } catch (err) {
@@ -1091,6 +1112,10 @@ function bindEvents() {
 
   document.getElementById('submit-knockout-early')?.addEventListener('click', () => {
     submitKnockoutPicks('early');
+  });
+
+  document.getElementById('submit-knockout-batch2')?.addEventListener('click', () => {
+    submitKnockoutPicks('batch2');
   });
 
   document.getElementById('submit-knockout-full')?.addEventListener('click', () => {

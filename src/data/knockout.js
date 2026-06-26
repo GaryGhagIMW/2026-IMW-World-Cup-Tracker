@@ -46,6 +46,7 @@ export const KNOCKOUT_MATCHES = [
     description: '1C vs 2F',
     homeSlot: '1C',
     awaySlot: '2F',
+    batch2Pick: true,
     kickoff: '2026-06-29',
   },
   {
@@ -305,8 +306,12 @@ export function getEarlyKnockoutMatches() {
   return KNOCKOUT_MATCHES.filter((m) => m.earlyPick);
 }
 
+export function getBatch2KnockoutMatches() {
+  return KNOCKOUT_MATCHES.filter((m) => m.batch2Pick);
+}
+
 export function getLateKnockoutMatches() {
-  return KNOCKOUT_MATCHES.filter((m) => !m.earlyPick);
+  return KNOCKOUT_MATCHES.filter((m) => !m.earlyPick && !m.batch2Pick);
 }
 
 export function getMatchById(id) {

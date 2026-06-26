@@ -71,15 +71,16 @@ function resolveThirdPlace(matchId, groupStandings) {
   };
 }
 
-function resolveWinnerSlot(slot, picks, results) {
+function resolveWinnerSlot(slot, picks, results, { preferPicks = false } = {}) {
   const num = Number.parseInt(String(slot).replace(/\D/g, ''), 10);
   const sourceId = MATCH_NUM_TO_ID[num];
   if (!sourceId) {
     return { code: '', label: slot, candidates: [] };
   }
 
-  const winner =
-    results?.knockout?.[sourceId] ?? picks?.[sourceId] ?? '';
+  const official = results?.knockout?.[sourceId] ?? '';
+  const predicted = picks?.[sourceId] ?? '';
+  const winner = preferPicks ? predicted : official || predicted;
   return {
     code: winner,
     label: winner ? getTeamName(winner) : `Winner M${num}`,
@@ -90,7 +91,9 @@ function resolveWinnerSlot(slot, picks, results) {
 function resolveSlot(slot, match, context) {
   if (!slot) return { code: '', label: 'TBD', candidates: [] };
   if (String(slot).startsWith('W')) {
-    return resolveWinnerSlot(slot, context.picks, context.results);
+    return resolveWinnerSlot(slot, context.picks, context.results, {
+      preferPicks: Boolean(context.preferPicks),
+    });
   }
   if (slot === '3rd') {
     return resolveThirdPlace(match.id, context.groupStandings);
@@ -152,6 +155,17 @@ export function getBracketContext(state, effectiveResults) {
     groupStandings: effectiveResults?.groups ?? {},
     picks: state.entry?.knockout ?? {},
     results: effectiveResults ?? {},
+    preferPicks: false,
+  };
+}
+
+/** Bracket context for the player pick form — later rounds follow the user's picks only. */
+export function getPickBracketContext(state, effectiveResults) {
+  return {
+    groupStandings: effectiveResults?.groups ?? {},
+    picks: state.entry?.knockout ?? {},
+    results: effectiveResults ?? {},
+    preferPicks: true,
   };
 }
 

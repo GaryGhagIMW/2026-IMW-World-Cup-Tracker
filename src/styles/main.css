@@ -811,6 +811,13 @@ nav.tabs button.disabled-tab {
     0 4px 16px rgba(212, 160, 23, 0.1);
 }
 
+.knockout-match.batch2-pick {
+  border-color: var(--imw-blue);
+  box-shadow:
+    0 0 0 1px rgba(0, 61, 165, 0.22),
+    0 4px 16px rgba(0, 61, 165, 0.1);
+}
+
 .knockout-match.locked {
   opacity: 0.72;
 }
