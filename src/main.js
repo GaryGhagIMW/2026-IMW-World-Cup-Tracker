@@ -294,7 +294,7 @@ function renderHome() {
       </p>
       <ul class="muted">
         <li><strong>June 25–26:</strong> Matches 49–51 ${renderStatusBadge('knockoutEarly')}</li>
-        <li><strong>June 27–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
+        <li><strong>June 26–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
         <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
       </ul>
       <p class="muted">See the <strong>Rules</strong> tab for scoring.</p>
@@ -510,7 +510,13 @@ function renderKnockoutMatchCard(match, entry, bracketContext) {
       <header class="knockout-match-header">
         <span class="knockout-match-label">${match.label}</span>
         ${match.earlyPick ? '<span class="status-badge upcoming">Early pick</span>' : ''}
-        ${match.batch2Pick ? '<span class="status-badge open">Open now</span>' : ''}
+        ${
+          match.batch2Pick
+            ? editable
+              ? '<span class="status-badge open">Open now</span>'
+              : `<span class="status-badge upcoming">${getWindowStatus('knockoutBatch2').label}</span>`
+            : ''
+        }
         <span class="knockout-match-pts muted">${points} pt${points === 1 ? '' : 's'}</span>
       </header>
       <p class="muted knockout-match-desc">${match.description}</p>
@@ -546,7 +552,7 @@ function renderKnockout() {
         <strong>Submission windows</strong>
         <ul class="muted" style="margin:0.5rem 0 0;padding-left:1.2rem">
           <li><strong>June 25–26:</strong> Matches 49–51 ${renderStatusBadge('knockoutEarly')}</li>
-          <li><strong>June 27–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
+          <li><strong>June 26–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
           <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
         </ul>
       </div>
@@ -963,7 +969,7 @@ function render() {
   `;
 
   bindEvents();
-  if (activeTab === 'leaderboard' || activeTab === 'groups') {
+  if (activeTab === 'leaderboard' || activeTab === 'groups' || activeTab === 'knockout') {
     startLiveResultsPolling();
   } else {
     stopLiveResultsPolling();
@@ -979,7 +985,7 @@ function bindEvents() {
         refreshLiveResults(true);
         refreshLeaderboard(true);
       }
-      if (activeTab === 'groups') {
+      if (activeTab === 'groups' || activeTab === 'knockout') {
         refreshLiveResults(true);
       }
     });

@@ -64,7 +64,7 @@ export const GAME_CONFIG = {
     knockoutBatch2: {
       id: 'knockoutBatch2',
       label: 'Match 52 (Brazil vs Japan)',
-      start: '2026-06-27',
+      start: '2026-06-26',
       end: '2026-06-28',
       description:
         'Pick the winner of Match 52 once Groups C and F are confirmed.',
