@@ -3,6 +3,8 @@ import { GROUPS, getTeamName } from './data/groups.js';
 import { KNOCKOUT_MATCHES } from './data/knockout.js';
 import {
   formatDateRange,
+  formatWindowRange,
+  formatWindowDeadline,
   getWindowStatus,
   isGroupStageClosed,
   canEditKnockoutBracket,
@@ -303,15 +305,17 @@ function renderHome() {
       <h2>Phase 2 — Knockout bracket</h2>
       ${
         bracketOpen
-          ? `<div class="callout success"><strong>Full bracket picks are open now.</strong> Predict every knockout winner through the Final, then submit once.</div>`
-          : ''
+          ? `<div class="callout success"><strong>Full bracket picks are open now.</strong> Predict every knockout winner through the Final, then submit once. Deadline: ${formatWindowDeadline(bracketWindow)}.</div>`
+          : getWindowStatus('knockoutBracket').state === 'closed'
+            ? `<div class="callout warning"><strong>Knockout submissions are closed.</strong> The deadline was ${formatWindowDeadline(bracketWindow)}. Round of 32 games are underway — no further picks will be accepted.</div>`
+            : ''
       }
       <p class="muted">
         Work through the tournament bracket on the <strong>Knockout</strong> tab. Later rounds show the teams you picked to win earlier games.
       </p>
       <div class="callout">
         <strong>Submission window:</strong>
-        ${formatDateRange(bracketWindow.start, bracketWindow.end)}
+        ${formatWindowRange(bracketWindow)}
         &nbsp; ${renderStatusBadge('knockoutBracket')}
       </div>
       <p class="muted">Match 73 (South Africa vs Canada) is locked — Canada won 1-0. Bracket paths follow the official FIFA feed (Canada and Germany are on opposite sides).</p>
@@ -498,9 +502,13 @@ function syncKnockoutRoundExpansion() {
 }
 
 function renderKnockoutSubmitCallout(entry) {
+  const w = GAME_CONFIG.windows.knockoutBracket;
+  const status = getWindowStatus('knockoutBracket');
   if (!isKnockoutSubmissionOpen() && !isAdminUnlocked()) {
-    const w = GAME_CONFIG.windows.knockoutBracket;
-    return `<div class="callout warning"><strong>Preview mode.</strong> Bracket picks unlock ${formatDateRange(w.start, w.end)}. Save your name and email before submitting.</div>`;
+    if (status.state === 'closed') {
+      return `<div class="callout warning"><strong>Knockout submissions are closed.</strong> The deadline was ${formatWindowDeadline(w)}. You can still view the bracket and track the leaderboard.</div>`;
+    }
+    return `<div class="callout warning"><strong>Preview mode.</strong> Bracket picks open ${formatWindowRange(w)}. Save your name and email before submitting.</div>`;
   }
   if (isAdminUnlocked() && !isKnockoutSubmissionOpen()) {
     return `<div class="callout success"><strong>Admin test mode.</strong> Bracket picks are unlocked for this session.</div>`;
@@ -575,7 +583,7 @@ function renderKnockout() {
       <p class="muted">
         ${picksCount} / ${KNOCKOUT_MATCHES.length} winners picked ·
         ${renderStatusBadge('knockoutBracket')}
-        (${formatDateRange(bracketWindow.start, bracketWindow.end)})
+        (${formatWindowRange(bracketWindow)})
       </p>
 
       ${renderKnockoutSubmitCallout(entry)}
@@ -1101,6 +1109,11 @@ function bindEvents() {
   });
 
   async function submitKnockoutBracket() {
+    if (!canEditKnockoutBracket()) {
+      const w = GAME_CONFIG.windows.knockoutBracket;
+      showToast(`Knockout submissions closed — deadline was ${formatWindowDeadline(w)}.`, true);
+      return;
+    }
     const entry = collectKnockoutPicksFromDom(ensureEntry());
     entry.knockout = applyLockedKnockoutPicks(entry.knockout);
     if (!entry.name) {
