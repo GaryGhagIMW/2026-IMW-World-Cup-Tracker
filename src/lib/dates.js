@@ -17,6 +17,12 @@ function parseWindowStart(window) {
 
 function parseWindowEnd(window) {
   const base = parseDate(window.end);
+  if (window.endTime && window.endTimeOffset) {
+    const [h, m] = window.endTime.split(':').map(Number);
+    const hh = String(h).padStart(2, '0');
+    const mm = String(m ?? 0).padStart(2, '0');
+    return new Date(`${window.end}T${hh}:${mm}:00.000${window.endTimeOffset}`);
+  }
   if (window.endTime) {
     const [h, m] = window.endTime.split(':').map(Number);
     return new Date(
@@ -99,15 +105,21 @@ export function formatDate(dateStr) {
 }
 
 export function formatWindowDeadline(window) {
-  const end = parseWindowEnd(window);
   if (window.endTime) {
-    return end.toLocaleString(undefined, {
+    const [h, m] = window.endTime.split(':').map(Number);
+    const date = parseDate(window.end);
+    const hour12 = h % 12 || 12;
+    const ampm = h < 12 ? 'AM' : 'PM';
+    const mm = String(m ?? 0).padStart(2, '0');
+    const dateLabel = date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
     });
+    const tz = window.endTimeLabel ?? '';
+    return tz
+      ? `${dateLabel}, ${hour12}:${mm} ${ampm} ${tz}`
+      : `${dateLabel}, ${hour12}:${mm} ${ampm}`;
   }
   return formatDate(window.end);
 }

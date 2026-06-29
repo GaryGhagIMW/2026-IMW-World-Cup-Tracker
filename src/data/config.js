@@ -74,7 +74,9 @@ export const GAME_CONFIG = {
       label: 'Full knockout bracket',
       start: '2026-06-26',
       end: '2026-06-30',
-      endTime: '23:59',
+      endTime: '10:00',
+      endTimeOffset: '-08:00',
+      endTimeLabel: 'PST',
       description:
         'Predict the entire knockout bracket through the Final and submit once.',
     },
