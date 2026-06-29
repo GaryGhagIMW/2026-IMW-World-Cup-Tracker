@@ -4,6 +4,18 @@ import { createEmptyKnockoutPredictions, coerceFinalScore } from './scoring.js';
 
 const STORAGE_KEY = 'imw-wc-2026';
 
+function groupsHasPicks(groups) {
+  return Object.values(groups ?? {}).some((row) => row.some(Boolean));
+}
+
+function pickGroups(existing, incoming) {
+  const existingGroups = existing?.groups;
+  const incomingGroups = incoming?.groups;
+  if (groupsHasPicks(incomingGroups)) return incomingGroups;
+  if (groupsHasPicks(existingGroups)) return existingGroups;
+  return incomingGroups ?? existingGroups;
+}
+
 export function getLeaderboardEntries(state = {}) {
   const remoteEntries = state.remoteEntries ?? [];
   const localEntries = state.allEntries ?? [];
@@ -31,7 +43,7 @@ function mergeEntryData(existing, incoming) {
   return {
     ...existing,
     ...incoming,
-    groups: incoming.groups ?? existing.groups,
+    groups: pickGroups(existing, incoming),
     knockout: hasKnockout
       ? {
           ...(existing.knockout ?? createEmptyKnockoutPredictions()),
@@ -136,8 +148,11 @@ export function addOrUpdateEntry(allEntries, entry) {
     (e) => e.name.toLowerCase() === entry.name.toLowerCase()
   );
   const next = [...allEntries];
-  const stamped = { ...entry, updatedAt: new Date().toISOString() };
-  if (idx >= 0) next[idx] = stamped;
+  const stamped = {
+    ...entry,
+    updatedAt: entry.updatedAt ?? new Date().toISOString(),
+  };
+  if (idx >= 0) next[idx] = mergeEntryData(allEntries[idx], stamped);
   else next.push(stamped);
   return next.sort((a, b) => a.name.localeCompare(b.name));
 }

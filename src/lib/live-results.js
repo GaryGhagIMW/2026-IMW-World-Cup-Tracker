@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
+import { FINAL_GROUP_STANDINGS } from '../data/final-group-standings.js';
 import { createEmptyGroupPredictions, createEmptyFinalScore } from './scoring.js';
 import { assetUrl } from './base.js';
 import { fetchWorldCupStandings } from './worldcup-api.js';
@@ -35,6 +36,13 @@ export function mergeResults(live, manual) {
     const liveComplete = liveRow.length === 4 && liveRow.every(Boolean);
     if (liveComplete) {
       merged[id] = [...liveRow];
+      continue;
+    }
+
+    const finalRow = FINAL_GROUP_STANDINGS[id] ?? [];
+    const finalComplete = finalRow.length === 4 && finalRow.every(Boolean);
+    if (finalComplete) {
+      merged[id] = [...finalRow];
     } else {
       merged[id] = manualRow.length ? [...manualRow] : ['', '', '', ''];
     }
@@ -51,8 +59,9 @@ export function mergeResults(live, manual) {
 }
 
 export function hasScoringResults(results) {
-  return Object.values(results?.groups ?? {}).some((row) =>
-    row.some(Boolean)
+  return (
+    Object.values(results?.groups ?? {}).some((row) => row.some(Boolean)) ||
+    Object.keys(FINAL_GROUP_STANDINGS).length === 12
   );
 }
 
@@ -139,8 +148,12 @@ export function getEffectiveResults(state) {
     finalScore: createEmptyFinalScore(),
   };
 
-  if (!isLiveResultsEnabled() || !state.liveResults) {
-    return manual;
+  if (!isLiveResultsEnabled()) {
+    return mergeResults(null, manual);
+  }
+
+  if (!state.liveResults) {
+    return mergeResults(null, manual);
   }
 
   // Manual admin overrides are local to one browser — only the organizer should

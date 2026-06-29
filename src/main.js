@@ -739,10 +739,10 @@ function renderLeaderboard() {
       </div>
       ${
         isLiveResultsEnabled()
-          ? `<p class="muted">${resultsLabel}</p>`
+          ? `<p class="muted">Group stage final · scores locked through 29 Jun 2026${resultsLabel ? ` · ${resultsLabel}` : ''}</p>`
           : !hasResults
             ? '<p class="muted">Enter actual group results in Admin to calculate scores.</p>'
-            : ''
+            : '<p class="muted">Group stage final · scores locked through 29 Jun 2026</p>'
       }
       ${
         isLeaderboardFetchConfigured()
