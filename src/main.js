@@ -312,7 +312,7 @@ function renderHome() {
         ${formatDateRange(bracketWindow.start, bracketWindow.end)}
         &nbsp; ${renderStatusBadge('knockoutBracket')}
       </div>
-      <p class="muted">Match 49 (South Africa vs Canada) is locked — Canada won 1-0. All other games are open for prediction.</p>
+      <p class="muted">Match 73 (South Africa vs Canada) is locked — Canada won 1-0. Bracket paths follow the official FIFA feed (Canada and Germany are on opposite sides).</p>
       <p class="muted">See the <strong>Rules</strong> tab for scoring.</p>
     </section>
   `;
@@ -505,7 +505,7 @@ function renderKnockoutSubmitCallout(entry) {
     return `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`;
   }
   if (canEditKnockoutBracket()) {
-    return `<div class="callout success"><strong>Full bracket is open.</strong> Pick every winner left-to-right through the Final. Later rounds only show teams from <strong>your</strong> earlier picks. Match 49 is locked to Canada. Submit once when complete.</div>`;
+    return `<div class="callout success"><strong>Full bracket is open.</strong> Pick every winner left-to-right through the Final. Later rounds only show teams from <strong>your</strong> earlier picks — on the path FIFA assigns, not random pairings. Match 73 is locked to Canada. Submit once when complete.</div>`;
   }
   return `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`;
 }
@@ -557,7 +557,8 @@ function renderKnockout() {
         <ul class="muted" style="margin:0.5rem 0 0;padding-left:1.2rem">
           <li>Round of 32 teams come from live group standings.</li>
           <li>Every later round shows only the winners <strong>you</strong> picked in the previous round.</li>
-          <li><strong>Match 49</strong> (South Africa vs Canada) is locked — Canada won 1-0.</li>
+          <li><strong>Match 73</strong> (South Africa vs Canada) is locked — Canada won 1-0.</li>
+          <li>Round of 16 uses official FIFA feeds (e.g. Canada meets Winner M75, not Germany).</li>
           <li>Fill in all ${KNOCKOUT_MATCHES.length} winners + Final score, then submit once.</li>
         </ul>
       </div>

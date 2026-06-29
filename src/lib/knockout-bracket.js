@@ -2,20 +2,23 @@ import { GAME_CONFIG } from '../data/config.js';
 import { KNOCKOUT_MATCHES, getMatchById } from '../data/knockout.js';
 import { createEmptyKnockoutPredictions } from './scoring.js';
 
-/** FIFA 2026 knockout tree for bracket-style UI (left → right). */
+/**
+ * Visual bracket columns — mirrors FIFA published feed paths (M73–M104).
+ * Canada (M73) and Germany (M74) are on opposite sides until a possible Final.
+ */
 export const BRACKET_TREE = [
   {
     round: 'r32',
     label: 'Round of 32',
     pairs: [
-      ['r32-1', 'r32-2'],
-      ['r32-5', 'r32-6'],
-      ['r32-3', 'r32-4'],
+      ['r32-2', 'r32-5'],
+      ['r32-1', 'r32-3'],
+      ['r32-4', 'r32-6'],
       ['r32-7', 'r32-8'],
-      ['r32-9', 'r32-10'],
       ['r32-11', 'r32-12'],
-      ['r32-13', 'r32-14'],
-      ['r32-15', 'r32-16'],
+      ['r32-9', 'r32-10'],
+      ['r32-15', 'r32-13'],
+      ['r32-14', 'r32-16'],
     ],
   },
   {

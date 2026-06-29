@@ -89,7 +89,7 @@ export const GAME_CONFIG = {
 
   /** Official results for completed knockout matches — picks are locked for all users. */
   lockedKnockoutResults: {
-    /** Match 49 — South Africa 0-1 Canada (Jun 28, 2026) */
+    /** Match 73 — South Africa 0-1 Canada (Jun 28, 2026) */
     'r32-1': 'CAN',
   },
 
