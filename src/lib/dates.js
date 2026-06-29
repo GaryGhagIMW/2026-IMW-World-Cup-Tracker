@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { isAdminUnlocked } from './admin.js';
+import { isMatchPickLocked } from './knockout-bracket.js';
 
 function parseDate(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -30,7 +31,7 @@ export function getWindowStatus(windowKey, today = getToday()) {
   if (window.submissionsClosed) {
     return {
       state: 'closed',
-      label: 'Entries closed',
+      label: 'Closed',
     };
   }
 
@@ -78,36 +79,34 @@ export function isGroupStageClosed() {
   return Boolean(GAME_CONFIG.windows.groupStage?.submissionsClosed);
 }
 
+export function canEditKnockoutBracket(today = getToday()) {
+  return isAdminUnlocked() || isWindowOpen('knockoutBracket', today);
+}
+
+/** @deprecated Use canEditKnockoutBracket */
 export function canEditKnockoutEarly(today = getToday()) {
-  return isAdminUnlocked() || isWindowOpen('knockoutEarly', today);
+  return canEditKnockoutBracket(today);
 }
 
+/** @deprecated Use canEditKnockoutBracket */
 export function canEditKnockoutBatch2(today = getToday()) {
-  return isAdminUnlocked() || isWindowOpen('knockoutBatch2', today);
+  return canEditKnockoutBracket(today);
 }
 
+/** @deprecated Use canEditKnockoutBracket */
 export function canEditKnockoutRest(today = getToday()) {
-  return isAdminUnlocked() || isWindowOpen('knockoutRest', today);
+  return canEditKnockoutBracket(today);
 }
 
 export function canEditKnockoutMatch(match, today = getToday()) {
-  if (match.earlyPick) {
-    return canEditKnockoutEarly(today) || canEditKnockoutRest(today);
-  }
-  if (match.batch2Pick) {
-    return canEditKnockoutBatch2(today) || canEditKnockoutRest(today);
-  }
-  return canEditKnockoutRest(today);
+  if (isMatchPickLocked(match.id)) return false;
+  return canEditKnockoutBracket(today);
 }
 
 export function canEditFinalScore(today = getToday()) {
-  return canEditKnockoutRest(today);
+  return canEditKnockoutBracket(today);
 }
 
 export function isKnockoutSubmissionOpen(today = getToday()) {
-  return (
-    canEditKnockoutEarly(today) ||
-    canEditKnockoutBatch2(today) ||
-    canEditKnockoutRest(today)
-  );
+  return canEditKnockoutBracket(today);
 }

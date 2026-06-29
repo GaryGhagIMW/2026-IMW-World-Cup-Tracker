@@ -1,12 +1,14 @@
 import { GAME_CONFIG } from '../data/config.js';
-import { GROUPS } from '../data/groups.js';
+import { GROUPS, getTeamName } from '../data/groups.js';
 import {
   KNOCKOUT_MATCHES,
-  getEarlyKnockoutMatches,
-  getBatch2KnockoutMatches,
 } from '../data/knockout.js';
 import { getValidWinnersForMatch } from './bracket.js';
-import { canEditKnockoutEarly, canEditKnockoutRest } from './dates.js';
+import {
+  applyLockedKnockoutPicks,
+  getLockedKnockoutResults,
+  isMatchPickLocked,
+} from './knockout-bracket.js';
 
 function scoreDifference(actual, predicted) {
   if (
@@ -193,24 +195,27 @@ export function validateGroupPredictions(groups) {
 
 export function validateKnockoutPredictions(
   knockout,
-  { submitPhase = 'full', bracketContext = {} } = {}
+  { bracketContext = {} } = {}
 ) {
-  const matches =
-    submitPhase === 'early'
-      ? getEarlyKnockoutMatches()
-      : submitPhase === 'batch2'
-        ? [...getEarlyKnockoutMatches(), ...getBatch2KnockoutMatches()]
-        : KNOCKOUT_MATCHES;
+  const picks = applyLockedKnockoutPicks(knockout);
 
-  for (const match of matches) {
-    const pick = knockout?.[match.id];
+  for (const match of KNOCKOUT_MATCHES) {
+    const pick = picks?.[match.id];
     if (!pick) {
       return `Pick a winner for ${match.label} (${match.description}).`;
     }
 
+    if (isMatchPickLocked(match.id)) {
+      const locked = getLockedKnockoutResults()[match.id];
+      if (pick !== locked) {
+        return `${match.label} is locked — ${getTeamName(locked)} won.`;
+      }
+      continue;
+    }
+
     const valid = getValidWinnersForMatch(match, bracketContext);
     if (valid.length && !valid.includes(pick)) {
-      return `Invalid pick for ${match.label}.`;
+      return `Invalid pick for ${match.label} — pick must match your earlier bracket.`;
     }
   }
 

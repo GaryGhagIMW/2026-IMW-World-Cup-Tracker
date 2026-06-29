@@ -58,25 +58,39 @@ export const GAME_CONFIG = {
       label: 'First 3 knockout games',
       start: '2026-06-25',
       end: '2026-06-26',
-      description:
-        'Opens after group stage — pick winners for the first three Round of 32 matches.',
+      submissionsClosed: true,
+      description: 'Superseded by full bracket submission.',
     },
     knockoutBatch2: {
       id: 'knockoutBatch2',
       label: 'Match 52 (Brazil vs Japan)',
       start: '2026-06-26',
       end: '2026-06-28',
+      submissionsClosed: true,
+      description: 'Superseded by full bracket submission.',
+    },
+    knockoutBracket: {
+      id: 'knockoutBracket',
+      label: 'Full knockout bracket',
+      start: '2026-06-26',
+      end: '2026-07-18',
       description:
-        'Pick the winner of Match 52 once Groups C and F are confirmed.',
+        'Predict the entire knockout bracket through the Final and submit once.',
     },
     knockoutRest: {
       id: 'knockoutRest',
       label: 'Remaining knockout picks',
       start: '2026-06-29',
       end: '2026-07-18',
-      description:
-        'Pick all remaining knockout winners and predict the Final score (tiebreaker).',
+      submissionsClosed: true,
+      description: 'Superseded by full bracket submission.',
     },
+  },
+
+  /** Official results for completed knockout matches — picks are locked for all users. */
+  lockedKnockoutResults: {
+    /** Match 49 — South Africa 0-1 Canada (Jun 28, 2026) */
+    'r32-1': 'CAN',
   },
 
   finalDate: '2026-07-19',

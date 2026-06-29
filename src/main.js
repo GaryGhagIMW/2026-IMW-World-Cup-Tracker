@@ -5,9 +5,7 @@ import {
   formatDateRange,
   getWindowStatus,
   isGroupStageClosed,
-  canEditKnockoutEarly,
-  canEditKnockoutBatch2,
-  canEditKnockoutRest,
+  canEditKnockoutBracket,
   canEditKnockoutMatch,
   canEditFinalScore,
   isKnockoutSubmissionOpen,
@@ -15,6 +13,7 @@ import {
 import {
   createEmptyEntry,
   createEmptyResults,
+  createEmptyKnockoutPredictions,
   validateGroupPredictions,
   validateKnockoutPredictions,
   validateFinalScore,
@@ -60,13 +59,20 @@ import {
   getPickBracketContext,
   buildAdminWinnerOptionsHtml,
 } from './lib/bracket.js';
+import {
+  BRACKET_TREE,
+  applyLockedKnockoutPicks,
+  clearDownstreamPicks,
+  getLockedKnockoutResults,
+  isMatchPickLocked,
+} from './lib/knockout-bracket.js';
 
 const LOGO_URL = assetUrl('assets/imw-logo-white.png');
 
 let state = loadState();
 let activeTab = 'home';
 let expandedLeaderboardKeys = new Set();
-let expandedKnockoutRounds = new Set(['r32']);
+let expandedKnockoutRounds = new Set(['r32', 'r16', 'qf', 'sf', 'final']);
 let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
@@ -162,6 +168,16 @@ function ensureEntry() {
   if (state.playerEmail != null && state.entry.email !== state.playerEmail) {
     state.entry.email = state.playerEmail;
   }
+  if (!state.entry.knockout) {
+    state.entry.knockout = createEmptyKnockoutPredictions();
+  }
+  const beforeLock = { ...state.entry.knockout };
+  state.entry.knockout = applyLockedKnockoutPicks(state.entry.knockout);
+  for (const matchId of Object.keys(getLockedKnockoutResults())) {
+    if (beforeLock[matchId] && beforeLock[matchId] !== state.entry.knockout[matchId]) {
+      state.entry.knockout = clearDownstreamPicks(state.entry.knockout, matchId);
+    }
+  }
   return state.entry;
 }
 
@@ -225,13 +241,11 @@ function countCompletedGroups(groups) {
 function renderHome() {
   const groupWindow = GAME_CONFIG.windows.groupStage;
   const groupClosed = isGroupStageClosed();
-  const earlyKnockoutOpen = canEditKnockoutEarly();
-  const batch2KnockoutOpen = canEditKnockoutBatch2();
-  const knockoutTabHint = earlyKnockoutOpen
-    ? 'Submit your first 3 Round of 32 picks on the <strong>Knockout</strong> tab (open now through June 26).'
-    : batch2KnockoutOpen
-      ? 'Submit your <strong>Match 52</strong> pick on the <strong>Knockout</strong> tab (open now through June 28).'
-      : 'Submit knockout picks on the <strong>Knockout</strong> tab when your window opens.';
+  const bracketOpen = canEditKnockoutBracket();
+  const bracketWindow = GAME_CONFIG.windows.knockoutBracket;
+  const knockoutTabHint = bracketOpen
+    ? 'Fill out the full tournament bracket on the <strong>Knockout</strong> tab and submit once.'
+    : 'Knockout bracket picks open on the <strong>Knockout</strong> tab when the window opens.';
 
   return `
     <section class="hero-banner">
@@ -283,23 +297,22 @@ function renderHome() {
       </ol>
     </section>
 
-    <section class="panel${earlyKnockoutOpen || batch2KnockoutOpen ? '' : ' upcoming-phase'}">
-      <h2>Phase 2 — Knockout stage</h2>
+    <section class="panel${bracketOpen ? '' : ' upcoming-phase'}">
+      <h2>Phase 2 — Knockout bracket</h2>
       ${
-        earlyKnockoutOpen
-          ? `<div class="callout success"><strong>Early knockout picks are open now.</strong> Submit the first 3 Round of 32 games by June 26.</div>`
-          : batch2KnockoutOpen
-            ? `<div class="callout success"><strong>Match 52 is open now.</strong> Brazil vs Japan — submit on the Knockout tab by June 28.</div>`
-            : ''
+        bracketOpen
+          ? `<div class="callout success"><strong>Full bracket picks are open now.</strong> Predict every knockout winner through the Final, then submit once.</div>`
+          : ''
       }
       <p class="muted">
-        Pick the winner of each knockout game on the <strong>Knockout</strong> tab. Submission windows:
+        Work through the tournament bracket on the <strong>Knockout</strong> tab. Later rounds show the teams you picked to win earlier games.
       </p>
-      <ul class="muted">
-        <li><strong>June 25–26:</strong> Matches 49–51 ${renderStatusBadge('knockoutEarly')}</li>
-        <li><strong>June 26–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
-        <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
-      </ul>
+      <div class="callout">
+        <strong>Submission window:</strong>
+        ${formatDateRange(bracketWindow.start, bracketWindow.end)}
+        &nbsp; ${renderStatusBadge('knockoutBracket')}
+      </div>
+      <p class="muted">Match 49 (South Africa vs Canada) is locked — Canada won 1-0. All other games are open for prediction.</p>
       <p class="muted">See the <strong>Rules</strong> tab for scoring.</p>
     </section>
   `;
@@ -308,8 +321,8 @@ function renderHome() {
 function renderRules() {
   const g = GAME_CONFIG.scoring.group;
   const k = GAME_CONFIG.scoring.knockout;
-  const knockoutHeading = canEditKnockoutEarly()
-    ? 'Scoring — Knockout stage (early picks open)'
+  const knockoutHeading = canEditKnockoutBracket()
+    ? 'Scoring — Knockout bracket (open now)'
     : 'Scoring — Knockout stage';
 
   return `
@@ -479,10 +492,11 @@ function syncKnockoutRoundExpansion() {
 
 function renderKnockoutSubmitCallout(entry) {
   if (!isKnockoutSubmissionOpen() && !isAdminUnlocked()) {
-    return `<div class="callout warning"><strong>Preview mode.</strong> Early picks unlock ${formatDateRange(GAME_CONFIG.windows.knockoutEarly.start, GAME_CONFIG.windows.knockoutEarly.end)}. Save your name and email before submitting.</div>`;
+    const w = GAME_CONFIG.windows.knockoutBracket;
+    return `<div class="callout warning"><strong>Preview mode.</strong> Bracket picks unlock ${formatDateRange(w.start, w.end)}. Save your name and email before submitting.</div>`;
   }
   if (isAdminUnlocked() && !isKnockoutSubmissionOpen()) {
-    return `<div class="callout success"><strong>Admin test mode.</strong> Picks are unlocked for this session so you can run a test submission.</div>`;
+    return `<div class="callout success"><strong>Admin test mode.</strong> Bracket picks are unlocked for this session.</div>`;
   }
   if (!entry.name) {
     return `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`;
@@ -490,43 +504,32 @@ function renderKnockoutSubmitCallout(entry) {
   if (!isSharePointConfigured()) {
     return `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`;
   }
-  if (canEditKnockoutEarly() && !canEditKnockoutBatch2() && !canEditKnockoutRest()) {
-    return `<div class="callout success"><strong>Early picks are open.</strong> Pick winners for the first 3 Round of 32 games and click <strong>Submit early picks (3 games)</strong> below.</div>`;
-  }
-  if (canEditKnockoutBatch2() && !canEditKnockoutRest()) {
-    return `<div class="callout success"><strong>Match 52 is open.</strong> Your earlier picks stay as entered — confirm Matches 49–51 still look correct, pick <strong>Match 52 (Brazil vs Japan)</strong>, then click <strong>Submit Match 52 pick</strong>. Later rounds follow your picks, not live results.</div>`;
-  }
-  if (canEditKnockoutRest()) {
-    return `<div class="callout success"><strong>Knockout picks are open.</strong> Submit your remaining picks and Final score when ready. Later rounds follow your own picks.</div>`;
+  if (canEditKnockoutBracket()) {
+    return `<div class="callout success"><strong>Full bracket is open.</strong> Pick every winner left-to-right through the Final. Later rounds only show teams from <strong>your</strong> earlier picks. Match 49 is locked to Canada. Submit once when complete.</div>`;
   }
   return `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`;
 }
 
 function renderKnockoutMatchCard(match, entry, bracketContext) {
   const { home, away } = resolveMatchParticipants(match, bracketContext);
+  const locked = isMatchPickLocked(match.id);
   const editable = canEditKnockoutMatch(match);
-  const pick = entry.knockout?.[match.id] ?? '';
+  const lockedWinner = locked ? getLockedKnockoutResults()[match.id] : '';
+  const pick = locked ? lockedWinner : (entry.knockout?.[match.id] ?? '');
   const points = ROUND_POINTS[match.round];
 
   return `
-    <article class="knockout-match${match.earlyPick ? ' early-pick' : ''}${match.batch2Pick ? ' batch2-pick' : ''}${editable ? '' : ' locked'}">
+    <article class="knockout-match bracket-match${locked ? ' result-locked' : ''}${editable ? '' : ' locked'}">
       <header class="knockout-match-header">
         <span class="knockout-match-label">${match.label}</span>
-        ${match.earlyPick ? '<span class="status-badge upcoming">Early pick</span>' : ''}
-        ${
-          match.batch2Pick
-            ? editable
-              ? '<span class="status-badge open">Open now</span>'
-              : `<span class="status-badge upcoming">${getWindowStatus('knockoutBatch2').label}</span>`
-            : ''
-        }
+        ${locked ? '<span class="status-badge closed">Result locked</span>' : ''}
         <span class="knockout-match-pts muted">${points} pt${points === 1 ? '' : 's'}</span>
       </header>
       <p class="muted knockout-match-desc">${match.description}</p>
       <div class="knockout-match-teams">
-        <span class="knockout-team">${home.label}</span>
+        <span class="knockout-team${pick === home.code ? ' is-picked' : ''}">${home.label}</span>
         <span class="knockout-vs">vs</span>
-        <span class="knockout-team">${away.label}</span>
+        <span class="knockout-team${pick === away.code ? ' is-picked' : ''}">${away.label}</span>
       </div>
       <label class="knockout-pick-label">
         Winner
@@ -541,49 +544,67 @@ function renderKnockout() {
   const entry = ensureEntry();
   const effectiveResults = getEffectiveResults(state);
   const bracketContext = getPickBracketContext(state, effectiveResults);
-  const earlyOpen = canEditKnockoutEarly();
-  const batch2Open = canEditKnockoutBatch2();
-  const restOpen = canEditKnockoutRest();
+  const bracketOpen = canEditKnockoutBracket();
   const picksCount = countKnockoutPicks(entry.knockout);
-  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
+  const bracketWindow = GAME_CONFIG.windows.knockoutBracket;
 
   return `
     <section class="panel knockout-panel">
-      <h2>Knockout bracket</h2>
+      <h2>Tournament bracket</h2>
 
       <div class="callout">
-        <strong>Submission windows</strong>
+        <strong>How it works</strong>
         <ul class="muted" style="margin:0.5rem 0 0;padding-left:1.2rem">
-          <li><strong>June 25–26:</strong> Matches 49–51 ${renderStatusBadge('knockoutEarly')}</li>
-          <li><strong>June 26–28:</strong> Match 52 (Brazil vs Japan) ${renderStatusBadge('knockoutBatch2')}</li>
-          <li><strong>June 29 – July 18:</strong> Remaining games + Final score ${renderStatusBadge('knockoutRest')}</li>
+          <li>Round of 32 teams come from live group standings.</li>
+          <li>Every later round shows only the winners <strong>you</strong> picked in the previous round.</li>
+          <li><strong>Match 49</strong> (South Africa vs Canada) is locked — Canada won 1-0.</li>
+          <li>Fill in all ${KNOCKOUT_MATCHES.length} winners + Final score, then submit once.</li>
         </ul>
       </div>
 
       <p class="muted">
-        ${picksCount} / ${KNOCKOUT_MATCHES.length} winners picked.
-        Round of 32 teams come from live group standings; later rounds follow <strong>your picks</strong>.
+        ${picksCount} / ${KNOCKOUT_MATCHES.length} winners picked ·
+        ${renderStatusBadge('knockoutBracket')}
+        (${formatDateRange(bracketWindow.start, bracketWindow.end)})
       </p>
 
       ${renderKnockoutSubmitCallout(entry)}
 
-      ${rounds
-        .map((round) => {
-          const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
-          const isOpen = expandedKnockoutRounds.has(round);
-          return `
-        <details class="knockout-round" data-knockout-round="${round}"${isOpen ? ' open' : ''}>
-          <summary class="knockout-round-heading">${ROUND_LABELS[round]}</summary>
-          <div class="knockout-round-body">
-            <div class="knockout-matches-grid">
-              ${matches.map((m) => renderKnockoutMatchCard(m, entry, bracketContext)).join('')}
-            </div>
+      <div class="bracket-board" aria-label="Knockout tournament bracket">
+        ${BRACKET_TREE.map(
+          (column) => `
+        <div class="bracket-column" data-round="${column.round}">
+          <h3 class="bracket-column-title">${column.label}</h3>
+          <div class="bracket-column-pairs">
+            ${column.pairs
+              .map((pair) => {
+                const [topId, bottomId] = pair;
+                const top = topId
+                  ? renderKnockoutMatchCard(
+                      KNOCKOUT_MATCHES.find((m) => m.id === topId),
+                      entry,
+                      bracketContext
+                    )
+                  : '';
+                const bottom =
+                  bottomId && column.round !== 'final'
+                    ? renderKnockoutMatchCard(
+                        KNOCKOUT_MATCHES.find((m) => m.id === bottomId),
+                        entry,
+                        bracketContext
+                      )
+                    : bottomId
+                      ? ''
+                      : '';
+                return `<div class="bracket-pair">${top}${bottom}</div>`;
+              })
+              .join('')}
           </div>
-        </details>`;
-        })
-        .join('')}
+        </div>`
+        ).join('')}
+      </div>
 
-      <details class="knockout-round" data-knockout-round="final-score"${expandedKnockoutRounds.has('final-score') ? ' open' : ''}>
+      <details class="knockout-round" data-knockout-round="final-score" open>
         <summary class="knockout-round-heading">Final score (tiebreaker only)</summary>
         <div class="knockout-round-body">
           <p class="muted">Does not earn points — breaks ties on total points.</p>
@@ -603,18 +624,8 @@ function renderKnockout() {
 
       <div class="actions-row">
         ${
-          earlyOpen
-            ? `<button class="primary" id="submit-knockout-early" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit early picks (3 games)'}</button>`
-            : ''
-        }
-        ${
-          batch2Open && !restOpen
-            ? `<button class="primary" id="submit-knockout-batch2" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit Match 52 pick'}</button>`
-            : ''
-        }
-        ${
-          restOpen
-            ? `<button class="primary" id="submit-knockout-full" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit all knockout picks'}</button>`
+          bracketOpen
+            ? `<button class="primary" id="submit-knockout-full" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit full bracket'}</button>`
             : ''
         }
       </div>
@@ -1070,46 +1081,36 @@ function bindEvents() {
     }
   });
 
-  async function submitKnockoutPicks(submitPhase) {
+  async function submitKnockoutBracket() {
     const entry = collectKnockoutPicksFromDom(ensureEntry());
+    entry.knockout = applyLockedKnockoutPicks(entry.knockout);
     if (!entry.name) {
       showToast('Save your name first.', true);
       return;
     }
 
     const bracketContext = getPickBracketContext(state, getEffectiveResults(state));
-    const pickError = validateKnockoutPredictions(entry.knockout, {
-      submitPhase,
-      bracketContext,
-    });
+    const pickError = validateKnockoutPredictions(entry.knockout, { bracketContext });
     if (pickError) {
       showToast(pickError, true);
       return;
     }
 
-    if (submitPhase === 'full') {
-      const scoreError = validateFinalScore(entry.finalScore);
-      if (scoreError) {
-        showToast(scoreError, true);
-        return;
-      }
+    const scoreError = validateFinalScore(entry.finalScore);
+    if (scoreError) {
+      showToast(scoreError, true);
+      return;
     }
 
     isSubmitting = true;
     render();
 
     try {
-      await submitKnockoutToSharePoint(entry, submitPhase);
+      await submitKnockoutToSharePoint(entry, 'full');
       state.entry = entry;
       state.allEntries = addOrUpdateEntry(state.allEntries, entry);
       saveState(state);
-      showToast(
-        submitPhase === 'early'
-          ? `Early knockout picks submitted — ${entry.name}`
-          : submitPhase === 'batch2'
-            ? `Match 52 pick submitted — ${entry.name}`
-            : `Knockout picks submitted — ${entry.name}`
-      );
+      showToast(`Full bracket submitted — ${entry.name}`);
       await refreshLeaderboard(true);
     } catch (err) {
       showToast(err.message || 'Knockout submission failed.', true);
@@ -1119,23 +1120,20 @@ function bindEvents() {
     }
   }
 
-  document.getElementById('submit-knockout-early')?.addEventListener('click', () => {
-    submitKnockoutPicks('early');
-  });
-
-  document.getElementById('submit-knockout-batch2')?.addEventListener('click', () => {
-    submitKnockoutPicks('batch2');
-  });
-
   document.getElementById('submit-knockout-full')?.addEventListener('click', () => {
-    submitKnockoutPicks('full');
+    submitKnockoutBracket();
   });
 
   document.querySelectorAll('[data-knockout-match]').forEach((sel) => {
     sel.addEventListener('change', () => {
-      collectKnockoutPicksFromDom(ensureEntry());
+      const matchId = sel.dataset.knockoutMatch;
+      if (isMatchPickLocked(matchId)) return;
+
+      let entry = collectKnockoutPicksFromDom(ensureEntry());
+      entry.knockout = clearDownstreamPicks(entry.knockout, matchId);
+      state.entry = entry;
       saveState(state);
-      if (activeTab === 'knockout') render();
+      render();
     });
   });
 

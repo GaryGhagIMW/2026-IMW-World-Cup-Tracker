@@ -3,18 +3,17 @@
  * Match labels use FIFA slot notation; update team codes after the draw
  * resolves third-place assignments.
  *
- * earlyPick: true = must be submitted June 25–26 (first 3 R32 games).
+ * Completed matches are locked via GAME_CONFIG.lockedKnockoutResults.
  */
 export const KNOCKOUT_MATCHES = [
-  // Round of 32 — first weekend batch (early picks)
+  // Round of 32
   {
     id: 'r32-1',
     round: 'r32',
     label: 'Match 49',
-    description: '2A vs 2B',
+    description: '2A vs 2B · South Africa vs Canada',
     homeSlot: '2A',
     awaySlot: '2B',
-    earlyPick: true,
     kickoff: '2026-06-28',
   },
   {
@@ -24,7 +23,6 @@ export const KNOCKOUT_MATCHES = [
     description: '1E vs 3A/B/C/D/F',
     homeSlot: '1E',
     awaySlot: '3rd',
-    earlyPick: true,
     kickoff: '2026-06-28',
   },
   {
@@ -34,11 +32,8 @@ export const KNOCKOUT_MATCHES = [
     description: '1F vs 2C',
     homeSlot: '1F',
     awaySlot: '2C',
-    earlyPick: true,
     kickoff: '2026-06-28',
   },
-
-  // Round of 32 — remaining
   {
     id: 'r32-4',
     round: 'r32',
@@ -46,7 +41,6 @@ export const KNOCKOUT_MATCHES = [
     description: '1C vs 2F',
     homeSlot: '1C',
     awaySlot: '2F',
-    batch2Pick: true,
     kickoff: '2026-06-29',
   },
   {
@@ -301,18 +295,6 @@ export const KNOCKOUT_MATCHES = [
     kickoff: '2026-07-19',
   },
 ];
-
-export function getEarlyKnockoutMatches() {
-  return KNOCKOUT_MATCHES.filter((m) => m.earlyPick);
-}
-
-export function getBatch2KnockoutMatches() {
-  return KNOCKOUT_MATCHES.filter((m) => m.batch2Pick);
-}
-
-export function getLateKnockoutMatches() {
-  return KNOCKOUT_MATCHES.filter((m) => !m.earlyPick && !m.batch2Pick);
-}
 
 export function getMatchById(id) {
   return KNOCKOUT_MATCHES.find((m) => m.id === id);

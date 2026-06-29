@@ -1,5 +1,6 @@
 import { GROUPS, getTeamName } from '../data/groups.js';
 import { KNOCKOUT_MATCHES } from '../data/knockout.js';
+import { applyLockedKnockoutPicks } from './knockout-bracket.js';
 
 /** Eligible third-place groups per R32 match (from FIFA bracket). */
 export const THIRD_PLACE_SLOTS = {
@@ -161,9 +162,10 @@ export function getBracketContext(state, effectiveResults) {
 
 /** Bracket context for the player pick form — later rounds follow the user's picks only. */
 export function getPickBracketContext(state, effectiveResults) {
+  const picks = applyLockedKnockoutPicks(state.entry?.knockout ?? {});
   return {
     groupStandings: effectiveResults?.groups ?? {},
-    picks: state.entry?.knockout ?? {},
+    picks,
     results: effectiveResults ?? {},
     preferPicks: true,
   };
