@@ -1,6 +1,6 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
-import { createEmptyGroupPredictions } from './scoring.js';
+import { createEmptyGroupPredictions, createEmptyFinalScore } from './scoring.js';
 import { assetUrl } from './base.js';
 import { fetchWorldCupStandings } from './worldcup-api.js';
 
@@ -43,7 +43,7 @@ export function mergeResults(live, manual) {
   return {
     groups: merged,
     knockout: manual?.knockout ?? {},
-    finalScore: manual?.finalScore ?? { home: null, away: null },
+    finalScore: createEmptyFinalScore(),
     updatedAt: live?.updatedAt ?? manual?.updatedAt ?? null,
     source: live?.source ?? 'manual',
     groupsWithMatches: live?.groupsWithMatches ?? 0,
@@ -136,7 +136,7 @@ export function getEffectiveResults(state) {
   const manual = state.results ?? {
     groups: emptyGroupMap(),
     knockout: {},
-    finalScore: { home: null, away: null },
+    finalScore: createEmptyFinalScore(),
   };
 
   if (!isLiveResultsEnabled() || !state.liveResults) {
@@ -148,7 +148,7 @@ export function getEffectiveResults(state) {
   const manualForMerge = state.isAdmin ? manual : {
     groups: emptyGroupMap(),
     knockout: {},
-    finalScore: { home: null, away: null },
+    finalScore: createEmptyFinalScore(),
   };
 
   return mergeResults(state.liveResults, manualForMerge);

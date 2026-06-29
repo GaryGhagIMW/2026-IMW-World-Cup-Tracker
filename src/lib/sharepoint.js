@@ -3,6 +3,7 @@ import { KNOCKOUT_MATCHES } from '../data/knockout.js';
 import { isGroupStageClosed, isKnockoutSubmissionOpen } from './dates.js';
 import { isAdminUnlocked } from './admin.js';
 import { GROUPS } from '../data/groups.js';
+import { coerceFinalScore } from './scoring.js';
 
 function flattenGroupsForSharePoint(groups) {
   const flat = {};
@@ -22,10 +23,14 @@ function flattenKnockoutForSharePoint(knockout, finalScore) {
     const key = `Knockout_${match.id.replace(/-/g, '_')}`;
     flat[key] = knockout?.[match.id] ?? '';
   }
-  flat.FinalScoreHome =
-    finalScore?.home != null && finalScore.home !== '' ? finalScore.home : '';
-  flat.FinalScoreAway =
-    finalScore?.away != null && finalScore.away !== '' ? finalScore.away : '';
+  const normalized = coerceFinalScore(finalScore);
+  flat.FinalScoreWinner =
+    normalized.winnerGoals != null ? normalized.winnerGoals : '';
+  flat.FinalScoreLoser =
+    normalized.loserGoals != null ? normalized.loserGoals : '';
+  /** Legacy Excel columns — winner/loser goals (not FIFA home/away). */
+  flat.FinalScoreHome = flat.FinalScoreWinner;
+  flat.FinalScoreAway = flat.FinalScoreLoser;
   return flat;
 }
 

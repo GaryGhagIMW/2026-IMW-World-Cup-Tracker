@@ -20,6 +20,8 @@ import {
   rankEntries,
   scoreEntry,
   countKnockoutPicks,
+  coerceFinalScore,
+  formatFinalScorePick,
 } from './lib/scoring.js';
 import {
   loadState,
@@ -343,14 +345,19 @@ function renderRules() {
         <li>Semi-finals — <strong>${k.sf} points</strong></li>
         <li>Final — <strong>${k.final} points</strong></li>
       </ul>
-      <p class="muted">The Final score prediction does not earn points — it is used as a tiebreaker only.</p>
+      <p class="muted">
+        The Final score prediction does not earn points — it is used as a tiebreaker only.
+        Predict the score as <strong>winner–loser</strong> (e.g. 4–3), not home/away.
+      </p>
 
       <h2>Winner</h2>
       <p class="muted">
         The person with the highest combined point total from both the Group and Knockout stages wins the pool.
       </p>
       <p class="muted">
-        <strong>Tiebreaker:</strong> If multiple people have the same total points, the score prediction of the Final game will be used.
+        <strong>Tiebreaker:</strong> If totals are tied, whoever is closest to the actual Final score wins.
+        Distance = |predicted winner goals − actual| + |predicted loser goals − actual|.
+        Exact score wins outright.
       </p>
     </section>
   `;
@@ -470,12 +477,12 @@ function collectKnockoutPicksFromDom(entry) {
   document.querySelectorAll('[data-knockout-match]').forEach((sel) => {
     entry.knockout[sel.dataset.knockoutMatch] = sel.value;
   });
-  const homeInput = document.getElementById('final-score-home');
-  const awayInput = document.getElementById('final-score-away');
+  const homeInput = document.getElementById('final-score-winner');
+  const awayInput = document.getElementById('final-score-loser');
   if (homeInput && awayInput) {
-    entry.finalScore.home =
+    entry.finalScore.winnerGoals =
       homeInput.value === '' ? null : Number(homeInput.value);
-    entry.finalScore.away =
+    entry.finalScore.loserGoals =
       awayInput.value === '' ? null : Number(awayInput.value);
   }
   return entry;
@@ -547,6 +554,8 @@ function renderKnockout() {
   const bracketOpen = canEditKnockoutBracket();
   const picksCount = countKnockoutPicks(entry.knockout);
   const bracketWindow = GAME_CONFIG.windows.knockoutBracket;
+  const finalWinner = entry.knockout?.final ?? '';
+  const finalScorePick = coerceFinalScore(entry.finalScore);
 
   return `
     <section class="panel knockout-panel">
@@ -606,18 +615,26 @@ function renderKnockout() {
       </div>
 
       <details class="knockout-round" data-knockout-round="final-score" open>
-        <summary class="knockout-round-heading">Final score (tiebreaker only)</summary>
+        <summary class="knockout-round-heading">Final match score (tiebreaker)</summary>
         <div class="knockout-round-body">
-          <p class="muted">Does not earn points — breaks ties on total points.</p>
+          <p class="muted">
+            Does not earn points — breaks ties on total pool points.
+            Enter the score as <strong>winner–loser</strong> (e.g. 4–3), matching the team you picked to win the Final above.
+          </p>
+          ${
+            finalWinner
+              ? `<p class="muted"><strong>Your Final winner:</strong> ${getTeamName(finalWinner)}</p>`
+              : `<p class="muted callout warning" style="margin-top:0.5rem">Pick a Final winner in the bracket first.</p>`
+          }
           <div class="final-score-row">
-            <label>Home goals
-              <input type="number" id="final-score-home" min="0" max="20" placeholder="0"
-                value="${entry.finalScore?.home ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
+            <label>Winner goals
+              <input type="number" id="final-score-winner" min="0" max="20" placeholder="4"
+                value="${finalScorePick.winnerGoals ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
             </label>
             <span class="knockout-vs">–</span>
-            <label>Away goals
-              <input type="number" id="final-score-away" min="0" max="20" placeholder="0"
-                value="${entry.finalScore?.away ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
+            <label>Loser goals
+              <input type="number" id="final-score-loser" min="0" max="20" placeholder="3"
+                value="${finalScorePick.loserGoals ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
             </label>
           </div>
         </div>
@@ -782,8 +799,8 @@ function renderLeaderboard() {
                       : ''
                   }
                   ${
-                    row.finalScore?.home != null && row.finalScore?.away != null
-                      ? `<p class="muted" style="margin-top:0.75rem">Final score pick: ${row.finalScore.home}–${row.finalScore.away}</p>`
+                    formatFinalScorePick(row.finalScore, row.knockout?.final)
+                      ? `<p class="muted" style="margin-top:0.75rem">Final score pick: ${formatFinalScorePick(row.finalScore, row.knockout?.final)}</p>`
                       : ''
                   }
                 </div>
@@ -887,14 +904,15 @@ function renderAdmin() {
         }).join('')}
       </div>
       <div class="final-score-row" style="margin-top:1rem">
-        <label>Final — home
-          <input type="number" id="result-final-home" min="0" max="20" value="${results.finalScore?.home ?? ''}" />
+        <label>Final — winner goals
+          <input type="number" id="result-final-winner" min="0" max="20" value="${coerceFinalScore(results.finalScore).winnerGoals ?? ''}" />
         </label>
         <span class="knockout-vs">–</span>
-        <label>Away
-          <input type="number" id="result-final-away" min="0" max="20" value="${results.finalScore?.away ?? ''}" />
+        <label>Loser goals
+          <input type="number" id="result-final-loser" min="0" max="20" value="${coerceFinalScore(results.finalScore).loserGoals ?? ''}" />
         </label>
       </div>
+      <p class="muted">Enter the actual Final as winner–loser (not FIFA home/away).</p>
       <div class="actions-row">
         <button class="primary" id="save-knockout-results">Save knockout results</button>
       </div>
@@ -1097,7 +1115,9 @@ function bindEvents() {
       return;
     }
 
-    const scoreError = validateFinalScore(entry.finalScore);
+    const scoreError = validateFinalScore(entry.finalScore, {
+      finalWinner: entry.knockout?.final,
+    });
     if (scoreError) {
       showToast(scoreError, true);
       return;
@@ -1241,10 +1261,10 @@ function bindEvents() {
     document.querySelectorAll('[data-result-knockout]').forEach((sel) => {
       results.knockout[sel.dataset.resultKnockout] = sel.value;
     });
-    const home = document.getElementById('result-final-home')?.value;
-    const away = document.getElementById('result-final-away')?.value;
-    results.finalScore.home = home === '' ? null : Number(home);
-    results.finalScore.away = away === '' ? null : Number(away);
+    const winner = document.getElementById('result-final-winner')?.value;
+    const loser = document.getElementById('result-final-loser')?.value;
+    results.finalScore.winnerGoals = winner === '' ? null : Number(winner);
+    results.finalScore.loserGoals = loser === '' ? null : Number(loser);
     results.updatedAt = new Date().toISOString();
     state.results = results;
     persist();

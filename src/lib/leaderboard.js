@@ -1,7 +1,7 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
 import { KNOCKOUT_MATCHES } from '../data/knockout.js';
-import { createEmptyKnockoutPredictions } from './scoring.js';
+import { createEmptyKnockoutPredictions, coerceFinalScore } from './scoring.js';
 
 export function isLeaderboardFetchConfigured() {
   return Boolean(getLeaderboardFetchUrl());
@@ -31,7 +31,7 @@ function parseSubmittedAt(value) {
 
 function parseKnockoutFromRow(row) {
   const knockout = createEmptyKnockoutPredictions();
-  let finalScore = { home: null, away: null };
+  let finalScore = { winnerGoals: null, loserGoals: null };
 
   const jsonRaw = row.EntryJson ?? row.entryJson;
   if (jsonRaw) {
@@ -41,10 +41,7 @@ function parseKnockoutFromRow(row) {
         Object.assign(knockout, parsed.knockout);
       }
       if (parsed.finalScore) {
-        finalScore = {
-          home: parsed.finalScore.home ?? null,
-          away: parsed.finalScore.away ?? null,
-        };
+        finalScore = coerceFinalScore(parsed.finalScore);
       }
     } catch {
       // ignore malformed JSON
@@ -56,11 +53,19 @@ function parseKnockoutFromRow(row) {
     if (row[col]) knockout[match.id] = row[col];
   }
 
-  if (row.FinalScoreHome !== undefined && row.FinalScoreHome !== '') {
-    finalScore.home = Number(row.FinalScoreHome);
+  if (row.FinalScoreWinner !== undefined && row.FinalScoreWinner !== '') {
+    finalScore.winnerGoals = Number(row.FinalScoreWinner);
   }
-  if (row.FinalScoreAway !== undefined && row.FinalScoreAway !== '') {
-    finalScore.away = Number(row.FinalScoreAway);
+  if (row.FinalScoreLoser !== undefined && row.FinalScoreLoser !== '') {
+    finalScore.loserGoals = Number(row.FinalScoreLoser);
+  }
+  if (finalScore.winnerGoals == null || finalScore.loserGoals == null) {
+    if (row.FinalScoreHome !== undefined && row.FinalScoreHome !== '') {
+      finalScore = coerceFinalScore({
+        home: Number(row.FinalScoreHome),
+        away: Number(row.FinalScoreAway),
+      });
+    }
   }
 
   return { knockout, finalScore };

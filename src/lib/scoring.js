@@ -22,6 +22,86 @@ function scoreDifference(actual, predicted) {
   return Math.abs(actual - predicted);
 }
 
+/** @typedef {{ winnerGoals: number|null, loserGoals: number|null }} FinalScorePick */
+
+export function createEmptyFinalScore() {
+  return { winnerGoals: null, loserGoals: null };
+}
+
+/**
+ * Normalize stored final score to winner/loser goals.
+ * Migrates legacy home/away by taking max as winner, min as loser.
+ */
+export function coerceFinalScore(finalScore) {
+  if (!finalScore) return createEmptyFinalScore();
+
+  if (
+    finalScore.winnerGoals != null &&
+    finalScore.loserGoals != null &&
+    !Number.isNaN(finalScore.winnerGoals) &&
+    !Number.isNaN(finalScore.loserGoals)
+  ) {
+    return {
+      winnerGoals: Number(finalScore.winnerGoals),
+      loserGoals: Number(finalScore.loserGoals),
+    };
+  }
+
+  if (
+    finalScore.home != null &&
+    finalScore.away != null &&
+    !Number.isNaN(finalScore.home) &&
+    !Number.isNaN(finalScore.away)
+  ) {
+    const home = Number(finalScore.home);
+    const away = Number(finalScore.away);
+    return {
+      winnerGoals: Math.max(home, away),
+      loserGoals: Math.min(home, away),
+    };
+  }
+
+  return createEmptyFinalScore();
+}
+
+export function formatFinalScorePick(finalScore, finalWinnerCode) {
+  const { winnerGoals, loserGoals } = coerceFinalScore(finalScore);
+  if (winnerGoals == null || loserGoals == null) return '';
+
+  const winnerLabel = finalWinnerCode ? getTeamName(finalWinnerCode) : 'Winner';
+  return `${winnerLabel} ${winnerGoals}–${loserGoals}`;
+}
+
+export function scoreFinalPrediction(prediction, result) {
+  const pred = coerceFinalScore(prediction);
+  const actual = coerceFinalScore(result);
+
+  if (pred.winnerGoals == null || pred.loserGoals == null) {
+    return { tiebreakerDistance: null, exactScore: false };
+  }
+  if (actual.winnerGoals == null || actual.loserGoals == null) {
+    return { tiebreakerDistance: null, exactScore: false };
+  }
+
+  const winnerDiff = scoreDifference(actual.winnerGoals, pred.winnerGoals);
+  const loserDiff = scoreDifference(actual.loserGoals, pred.loserGoals);
+  const combinedDiff =
+    winnerDiff != null && loserDiff != null ? winnerDiff + loserDiff : null;
+
+  const exactScore =
+    pred.winnerGoals === actual.winnerGoals &&
+    pred.loserGoals === actual.loserGoals;
+
+  const predTotal = pred.winnerGoals + pred.loserGoals;
+  const actualTotal = actual.winnerGoals + actual.loserGoals;
+
+  return {
+    tiebreakerDistance: combinedDiff,
+    exactScore,
+    totalGoalsDiff: scoreDifference(actualTotal, predTotal),
+  };
+}
+
 export function scoreGroupPredictions(predictions, results) {
   const { perPosition, winnerBonus } = GAME_CONFIG.scoring.group;
   let points = 0;
@@ -83,30 +163,6 @@ export function scoreKnockoutPredictions(predictions, results) {
   return { points, maxPoints, breakdown };
 }
 
-export function scoreFinalPrediction(prediction, result) {
-  if (!prediction || !result) {
-    return { tiebreakerDistance: null, exactScore: false };
-  }
-
-  const predTotal = prediction.home + prediction.away;
-  const actualTotal = result.home + result.away;
-  const totalDiff = scoreDifference(actualTotal, predTotal);
-
-  const exactScore =
-    prediction.home === result.home && prediction.away === result.away;
-
-  const homeDiff = scoreDifference(result.home, prediction.home);
-  const awayDiff = scoreDifference(result.away, prediction.away);
-  const combinedDiff =
-    homeDiff != null && awayDiff != null ? homeDiff + awayDiff : totalDiff;
-
-  return {
-    tiebreakerDistance: combinedDiff,
-    exactScore,
-    totalGoalsDiff: totalDiff,
-  };
-}
-
 export function scoreEntry(entry, results) {
   const group = scoreGroupPredictions(entry.groups, results.groups);
   const knockout = scoreKnockoutPredictions(entry.knockout, results.knockout);
@@ -162,7 +218,7 @@ export function createEmptyEntry(name = '') {
     name,
     groups: createEmptyGroupPredictions(),
     knockout: createEmptyKnockoutPredictions(),
-    finalScore: { home: null, away: null },
+    finalScore: createEmptyFinalScore(),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -171,7 +227,7 @@ export function createEmptyResults() {
   return {
     groups: createEmptyGroupPredictions(),
     knockout: createEmptyKnockoutPredictions(),
-    finalScore: { home: null, away: null },
+    finalScore: createEmptyFinalScore(),
     updatedAt: null,
   };
 }
@@ -222,12 +278,20 @@ export function validateKnockoutPredictions(
   return null;
 }
 
-export function validateFinalScore(finalScore) {
-  if (finalScore?.home == null || finalScore?.away == null) {
-    return 'Enter your Final score prediction (home and away goals).';
+export function validateFinalScore(finalScore, { finalWinner } = {}) {
+  const { winnerGoals, loserGoals } = coerceFinalScore(finalScore);
+
+  if (winnerGoals == null || loserGoals == null) {
+    return 'Enter your Final score prediction (winner goals and loser goals).';
   }
-  if (finalScore.home < 0 || finalScore.away < 0) {
+  if (winnerGoals < 0 || loserGoals < 0) {
     return 'Final score must be zero or greater.';
+  }
+  if (winnerGoals < loserGoals) {
+    return 'Winner goals must be higher than loser goals (e.g. 4–3).';
+  }
+  if (finalWinner && winnerGoals === loserGoals) {
+    return 'Winner and loser goals cannot be equal — pick a decisive score for your Final winner.';
   }
   return null;
 }

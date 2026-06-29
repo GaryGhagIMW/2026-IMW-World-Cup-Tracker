@@ -1,6 +1,6 @@
 import { POOL_ENTRIES } from '../data/pool-entries.js';
 import { KNOCKOUT_MATCHES } from '../data/knockout.js';
-import { createEmptyKnockoutPredictions } from './scoring.js';
+import { createEmptyKnockoutPredictions, coerceFinalScore } from './scoring.js';
 
 const STORAGE_KEY = 'imw-wc-2026';
 
@@ -23,8 +23,10 @@ export function getLeaderboardEntries(state = {}) {
 
 function mergeEntryData(existing, incoming) {
   const hasKnockout = KNOCKOUT_MATCHES.some((m) => incoming.knockout?.[m.id]);
-  const hasFinal =
-    incoming.finalScore?.home != null && incoming.finalScore?.away != null;
+  const hasFinal = (() => {
+    const { winnerGoals, loserGoals } = coerceFinalScore(incoming.finalScore);
+    return winnerGoals != null && loserGoals != null;
+  })();
 
   return {
     ...existing,
