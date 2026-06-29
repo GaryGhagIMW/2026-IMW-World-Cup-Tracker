@@ -30,6 +30,23 @@ function normalizeGroupRow(groupStandings, groupId) {
 }
 
 function resolveGroupSlot(slot, groupStandings) {
+  const thirdMatch = slot.match(/^3([A-L])$/);
+  if (thirdMatch) {
+    const groupId = thirdMatch[1];
+    const row = normalizeGroupRow(groupStandings, groupId);
+    const code = row[2] ?? '';
+
+    if (code) {
+      return { code, label: getTeamName(code), candidates: [code] };
+    }
+
+    return {
+      code: '',
+      label: `3rd Group ${groupId}`,
+      candidates: [],
+    };
+  }
+
   const match = slot.match(/^([12])([A-L])$/);
   if (!match) {
     return { code: '', label: slot, candidates: [] };
@@ -51,7 +68,39 @@ function resolveGroupSlot(slot, groupStandings) {
   };
 }
 
+/** FIFA Annex C assignments once third-place qualifiers from B,D,E,F,I,J,K,L are known. */
+export const THIRD_PLACE_ASSIGNMENTS = {
+  'r32-2': 'D',
+  'r32-5': 'F',
+  'r32-7': 'E',
+  'r32-8': 'K',
+  'r32-9': 'B',
+  'r32-10': 'I',
+  'r32-14': 'J',
+  'r32-16': 'L',
+};
+
+function resolveThirdPlaceFromGroup(groupId, groupStandings) {
+  const row = normalizeGroupRow(groupStandings, groupId);
+  const code = row[2] ?? '';
+
+  if (code) {
+    return { code, label: getTeamName(code), candidates: [code] };
+  }
+
+  return {
+    code: '',
+    label: `3rd Group ${groupId}`,
+    candidates: [],
+  };
+}
+
 function resolveThirdPlace(matchId, groupStandings) {
+  const assignedGroup = THIRD_PLACE_ASSIGNMENTS[matchId];
+  if (assignedGroup) {
+    return resolveThirdPlaceFromGroup(assignedGroup, groupStandings);
+  }
+
   const eligible = THIRD_PLACE_SLOTS[matchId] ?? [];
   const candidates = eligible
     .map((groupId) => normalizeGroupRow(groupStandings, groupId)[2])
