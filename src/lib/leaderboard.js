@@ -51,6 +51,8 @@ function parseKnockoutFromRow(row) {
   for (const match of KNOCKOUT_MATCHES) {
     const col = `Knockout_${match.id.replace(/-/g, '_')}`;
     if (row[col]) knockout[match.id] = row[col];
+    // Knockout Master sheet uses FIFA labels (e.g. "Match 73")
+    if (row[match.label]) knockout[match.id] = row[match.label];
   }
 
   if (row.FinalScoreWinner !== undefined && row.FinalScoreWinner !== '') {
@@ -65,6 +67,18 @@ function parseKnockoutFromRow(row) {
         home: Number(row.FinalScoreHome),
         away: Number(row.FinalScoreAway),
       });
+    }
+  }
+  if (finalScore.winnerGoals == null || finalScore.loserGoals == null) {
+    const winnerCol =
+      row['Final score winner goals'] ?? row['FinalScoreWinnerGoals'];
+    const loserCol =
+      row['Final score loser goals'] ?? row['FinalScoreLoserGoals'];
+    if (winnerCol !== undefined && winnerCol !== '') {
+      finalScore = {
+        winnerGoals: Number(winnerCol),
+        loserGoals: Number(loserCol),
+      };
     }
   }
 
