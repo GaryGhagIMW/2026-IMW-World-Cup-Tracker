@@ -89,7 +89,7 @@ $($groupLines -join "`n")
 }
 
 $header = @'
-import { createEmptyKnockoutPredictions } from '../lib/scoring.js';
+import { createEmptyKnockoutPredictions, createEmptyFinalScore } from '../lib/scoring.js';
 
 function poolEntry(name, email, groups, updatedAt) {
   return {
@@ -97,7 +97,7 @@ function poolEntry(name, email, groups, updatedAt) {
     email,
     groups,
     knockout: createEmptyKnockoutPredictions(),
-    finalScore: { home: null, away: null },
+    finalScore: createEmptyFinalScore(),
     updatedAt,
   };
 }

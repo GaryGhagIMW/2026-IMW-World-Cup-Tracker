@@ -13,15 +13,16 @@ In OneDrive (`World Cup 2026 Pool/Group Stage Entries.xlsx`):
 
 | Column | Notes |
 |--------|--------|
-| PlayerName | |
+| PlayerName | Display name (first + last) |
 | Email | |
 | SubmittedAt | |
-| SubmitPhase | `early` or `full` |
-| EntryJson | Full JSON backup (recommended) |
+| EntryJson | Full JSON backup — source of truth for bracket picks |
 
-> Minimum: `PlayerName`, `Email`, `SubmittedAt`, `SubmitPhase`, `EntryJson`
+> One row per email after cleanup. See **`Knockout Master`** sheet for flattened columns (Match 73–104 + final score).
 
-To append manually (recovery): `.\scripts\append-knockout-entry.ps1 -PlayerName "Name" -Email "you@imw.ca" -SubmitPhase early -EntryJson '{...}'`
+To rebuild from raw submissions: `.\scripts\cleanup-excel-entries.ps1` (dedupes by email, drops phase rows, adds master sheets).
+
+To append manually (recovery): `.\scripts\append-knockout-entry.ps1 -PlayerName "Name" -Email "you@imw.ca" -SubmitPhase full -EntryJson '{...}'`
 
 ### 2. Update your existing Power Automate flow
 
