@@ -124,8 +124,8 @@ function Select-BestKnockoutRow($rows) {
     }
   }
   return ($scored | Sort-Object `
-      @{ Expression = 'SubmittedAt'; Descending = $true }, `
-      @{ Expression = 'PickCount'; Descending = $true } |
+      @{ Expression = 'PickCount'; Descending = $true }, `
+      @{ Expression = 'SubmittedAt'; Descending = $true } |
     Select-Object -First 1).Row
 }
 
@@ -225,13 +225,14 @@ foreach ($row in $groupRows) {
 
 $rows = @($deduped.Values | Sort-Object PlayerName)
 
-# --- Knockout (EntryJson on Knockout sheet, or flattened Match columns on Knockout Master) ---
+# --- Knockout (prefer cleaned Knockout Master; fall back to raw Knockout + EntryJson) ---
 $knockoutRows = @()
-foreach ($sheet in @('Knockout', 'Knockout Master')) {
+foreach ($sheet in @('Knockout Master', 'Knockout')) {
   try {
-    $knockoutRows = Import-SheetRows $excelPath $sheet |
+    $sheetRows = Import-SheetRows $excelPath $sheet |
       Where-Object { $_.PlayerName -and ([string]$_.PlayerName).Trim() }
-    if ($knockoutRows.Count -gt 0) {
+    if ($sheetRows.Count -gt 0) {
+      $knockoutRows = $sheetRows
       Write-Host "Knockout data from worksheet: $sheet ($($knockoutRows.Count) rows)"
       break
     }
