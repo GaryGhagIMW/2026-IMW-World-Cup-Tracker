@@ -141,6 +141,7 @@ export function scoreGroupPredictions(predictions, results) {
 
 export function scoreKnockoutPredictions(predictions, results) {
   const weights = GAME_CONFIG.scoring.knockout;
+  const autoCredit = new Set(GAME_CONFIG.knockoutFairnessAutoCredit ?? []);
   let points = 0;
   let maxPoints = 0;
   const breakdown = [];
@@ -148,6 +149,20 @@ export function scoreKnockoutPredictions(predictions, results) {
   for (const match of KNOCKOUT_MATCHES) {
     const weight = weights[match.round];
     maxPoints += weight;
+
+    if (autoCredit.has(match.id)) {
+      points += weight;
+      breakdown.push({
+        matchId: match.id,
+        round: match.round,
+        points: weight,
+        maxPoints: weight,
+        correct: true,
+        autoCredit: true,
+      });
+      continue;
+    }
+
     const predicted = predictions?.[match.id];
     const actual = results?.[match.id];
     const correct = predicted && actual && predicted === actual;

@@ -96,7 +96,19 @@ export const GAME_CONFIG = {
   lockedKnockoutResults: {
     /** Match 73 — South Africa 0-1 Canada (Jun 28, 2026) */
     'r32-1': 'CAN',
+    /** Match 74 — Germany 1-1 Paraguay, PAR wins 4-3 pens (Jun 29, 2026) */
+    'r32-2': 'PAR',
+    /** Match 75 — Netherlands 1-1 Morocco, MAR wins 3-2 pens (Jun 29, 2026) */
+    'r32-3': 'MAR',
+    /** Match 76 — Brazil 2-1 Japan (Jun 29, 2026) */
+    'r32-4': 'BRA',
   },
+
+  /**
+   * R32 matches compromised by the Jun 30 10:00 AM PST deadline — results were
+   * known to some players before submit. Everyone receives 1 pt per match here.
+   */
+  knockoutFairnessAutoCredit: ['r32-1', 'r32-2', 'r32-3', 'r32-4'],
 
   finalDate: '2026-07-19',
 
