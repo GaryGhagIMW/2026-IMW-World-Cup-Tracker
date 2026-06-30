@@ -1071,3 +1071,137 @@ footer a:hover {
   color: var(--muted);
   margin-top: 0.5rem;
 }
+
+/* Bracket viewer (read-only) */
+.knockout-viewer-panel {
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bracket-viewer-select {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 360px;
+  margin-top: 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.bracket-viewer-select select {
+  font-weight: 400;
+}
+
+.bracket-viewer {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bracket-viewer-round {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bracket-viewer-connector {
+  width: 2px;
+  height: 1.25rem;
+  background: var(--border);
+  margin: 0.25rem 0;
+}
+
+.bracket-viewer-round-title {
+  margin: 0 0 0.75rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--imw-blue-dark);
+  background: rgba(0, 61, 165, 0.1);
+  border-radius: 999px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.bracket-viewer-round-matches {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.bracket-viewer-match {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.bracket-viewer-match-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--imw-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bracket-viewer-desc {
+  font-size: 0.75rem;
+  margin: 0.15rem 0 0.5rem;
+}
+
+.bracket-viewer-matchup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bracket-viewer-vs {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 0.1rem 0;
+}
+
+.bracket-viewer-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.bracket-viewer-team.is-pick {
+  color: var(--imw-blue-dark);
+  font-weight: 700;
+  background: var(--gold-soft);
+  border: 1px solid rgba(212, 160, 23, 0.35);
+}
+
+.bracket-viewer-flag {
+  flex-shrink: 0;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.panel h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  color: var(--imw-blue-dark);
+}
+
+.panel h3:first-of-type {
+  margin-top: 0.5rem;
+}

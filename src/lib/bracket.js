@@ -211,7 +211,11 @@ export function getBracketContext(state, effectiveResults) {
 
 /** Bracket context for the player pick form — later rounds follow the user's picks only. */
 export function getPickBracketContext(state, effectiveResults) {
-  const picks = applyLockedKnockoutPicks(state.entry?.knockout ?? {});
+  return getEntryBracketContext(state.entry, effectiveResults);
+}
+
+export function getEntryBracketContext(entry, effectiveResults) {
+  const picks = applyLockedKnockoutPicks(entry?.knockout ?? {});
   return {
     groupStandings: effectiveResults?.groups ?? {},
     picks,

@@ -179,6 +179,20 @@ export function scoreKnockoutPredictions(predictions, results) {
   return { points, maxPoints, breakdown };
 }
 
+/** Baseline KO pts auto-credited to every player (Matches 73–76). Hidden on leaderboard. */
+export function getKnockoutAutoCreditPoints() {
+  const weights = GAME_CONFIG.scoring.knockout;
+  const autoCredit = GAME_CONFIG.knockoutFairnessAutoCredit ?? [];
+  return autoCredit.reduce((sum, matchId) => {
+    const match = KNOCKOUT_MATCHES.find((m) => m.id === matchId);
+    return sum + (match ? weights[match.round] : 0);
+  }, 0);
+}
+
+export function getDisplayKnockoutPoints(knockoutPoints) {
+  return Math.max(0, knockoutPoints - getKnockoutAutoCreditPoints());
+}
+
 export function scoreEntry(entry, results) {
   const finalizedGroupPoints = getFinalizedGroupPoints(entry);
   const group =

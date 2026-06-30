@@ -135,6 +135,23 @@ export function getTeamName(code) {
   return getTeamByCode(code)?.name ?? code;
 }
 
+/** ISO 3166 codes for flagcdn.com (FIFA code → flag slug). */
+const FLAG_ISO = {
+  MEX: 'mx', RSA: 'za', KOR: 'kr', CZE: 'cz', SUI: 'ch', CAN: 'ca', BIH: 'ba', QAT: 'qa',
+  BRA: 'br', MAR: 'ma', SCO: 'gb-sct', HAI: 'ht', USA: 'us', AUS: 'au', PAR: 'py', TUR: 'tr',
+  GER: 'de', CIV: 'ci', ECU: 'ec', CUW: 'cw', NED: 'nl', JPN: 'jp', SWE: 'se', TUN: 'tn',
+  BEL: 'be', EGY: 'eg', IRN: 'ir', NZL: 'nz', ESP: 'es', CPV: 'cv', URU: 'uy', KSA: 'sa',
+  FRA: 'fr', NOR: 'no', SEN: 'sn', IRQ: 'iq', ARG: 'ar', AUT: 'at', ALG: 'dz', JOR: 'jo',
+  COL: 'co', POR: 'pt', COD: 'cd', UZB: 'uz', ENG: 'gb-eng', CRO: 'hr', GHA: 'gh', PAN: 'pa',
+};
+
+export function getTeamFlagUrl(code) {
+  if (!code) return '';
+  const iso = FLAG_ISO[code];
+  if (!iso) return '';
+  return `https://flagcdn.com/w40/${iso}.png`;
+}
+
 export function getAllTeams() {
   return GROUPS.flatMap((g) => g.teams.map((t) => ({ ...t, groupId: g.id })));
 }

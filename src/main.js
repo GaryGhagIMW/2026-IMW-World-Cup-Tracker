@@ -1,5 +1,5 @@
-import { GAME_CONFIG, getMaxGroupPoints, getMaxKnockoutPoints, ROUND_LABELS, ROUND_POINTS } from './data/config.js';
-import { GROUPS, getTeamName } from './data/groups.js';
+import { GAME_CONFIG, getMaxGroupPoints, getMaxKnockoutPoints, ROUND_LABELS } from './data/config.js';
+import { GROUPS, getTeamName, getTeamFlagUrl } from './data/groups.js';
 import { KNOCKOUT_MATCHES } from './data/knockout.js';
 import {
   formatDateRange,
@@ -8,8 +8,6 @@ import {
   getWindowStatus,
   isGroupStageClosed,
   canEditKnockoutBracket,
-  canEditKnockoutMatch,
-  canEditFinalScore,
   isKnockoutSubmissionOpen,
 } from './lib/dates.js';
 import {
@@ -24,6 +22,7 @@ import {
   countKnockoutPicks,
   coerceFinalScore,
   formatFinalScorePick,
+  getDisplayKnockoutPoints,
 } from './lib/scoring.js';
 import {
   loadState,
@@ -58,17 +57,15 @@ import {
 import { assetUrl } from './lib/base.js';
 import {
   resolveMatchParticipants,
-  buildWinnerOptionsHtml,
   getBracketContext,
   getPickBracketContext,
+  getEntryBracketContext,
   buildAdminWinnerOptionsHtml,
 } from './lib/bracket.js';
 import {
-  BRACKET_TREE,
   applyLockedKnockoutPicks,
   clearDownstreamPicks,
   getLockedKnockoutResults,
-  isMatchPickLocked,
 } from './lib/knockout-bracket.js';
 
 const LOGO_URL = assetUrl('assets/imw-logo-white.png');
@@ -76,13 +73,12 @@ const LOGO_URL = assetUrl('assets/imw-logo-white.png');
 let state = loadState();
 let activeTab = 'home';
 let expandedLeaderboardKeys = new Set();
-let expandedKnockoutRounds = new Set(['r32', 'r16', 'qf', 'sf', 'final']);
 let toastTimer = null;
 let adminPinDraft = '';
 let isSubmitting = false;
 let isFetchingLeaderboard = false;
-let isFetchingGroupStandings = false;
 let liveResultsTimer = null;
+let bracketViewerKey = '';
 
 const LEADERBOARD_CACHE_MS = 60_000;
 
@@ -97,10 +93,7 @@ async function refreshLiveResults(force = false) {
   if (!force && age < refreshMs) return;
 
   const affectsUi =
-    activeTab === 'leaderboard' || activeTab === 'groups' || activeTab === 'knockout';
-  if (activeTab === 'groups' || activeTab === 'knockout') {
-    isFetchingGroupStandings = true;
-  }
+    activeTab === 'leaderboard' || activeTab === 'knockout';
   if (affectsUi) render();
 
   try {
@@ -112,7 +105,6 @@ async function refreshLiveResults(force = false) {
   } catch (err) {
     console.warn('Live results refresh failed:', err);
   } finally {
-    isFetchingGroupStandings = false;
     if (affectsUi) render();
   }
 }
@@ -120,7 +112,7 @@ async function refreshLiveResults(force = false) {
 function startLiveResultsPolling() {
   stopLiveResultsPolling();
   if (!isLiveResultsEnabled()) return;
-  if (activeTab !== 'leaderboard' && activeTab !== 'groups' && activeTab !== 'knockout') {
+  if (activeTab !== 'leaderboard' && activeTab !== 'knockout') {
     return;
   }
 
@@ -245,11 +237,9 @@ function countCompletedGroups(groups) {
 function renderHome() {
   const groupWindow = GAME_CONFIG.windows.groupStage;
   const groupClosed = isGroupStageClosed();
-  const bracketOpen = canEditKnockoutBracket();
   const bracketWindow = GAME_CONFIG.windows.knockoutBracket;
-  const knockoutTabHint = bracketOpen
-    ? 'Fill out the full tournament bracket on the <strong>Knockout</strong> tab and submit once.'
-    : 'Knockout bracket picks open on the <strong>Knockout</strong> tab when the window opens.';
+  const knockoutTabHint =
+    'Browse any player\'s knockout picks on the <strong>Bracket</strong> tab.';
 
   return `
     <section class="hero-banner">
@@ -274,7 +264,7 @@ function renderHome() {
     <section class="panel">
       <h2>Phase 1 — Group stage</h2>
       <p class="muted">
-        Group stage entries are closed. Follow live group rankings on the <strong>Group Rankings</strong> tab and track pool points on the <strong>Leaderboard</strong>.
+        Group stage entries are closed. Follow pool points on the <strong>Leaderboard</strong>.
       </p>
       <div class="callout">
         <strong>Submission window:</strong>
@@ -294,53 +284,49 @@ function renderHome() {
       <h2>How to play</h2>
       <ol class="muted">
         <li>Enter your name and IMW email, then save.</li>
-        <li>Track live group rankings on the <strong>Group Rankings</strong> tab.</li>
-        <li>See the <strong>Rules</strong> tab for scoring details.</li>
+        <li>See scoring rules below on this page.</li>
         <li>${knockoutTabHint}</li>
         <li>Track standings on the <strong>Leaderboard</strong>.</li>
       </ol>
     </section>
 
-    <section class="panel${bracketOpen ? '' : ' upcoming-phase'}">
+    <section class="panel upcoming-phase">
       <h2>Phase 2 — Knockout bracket</h2>
       ${
-        bracketOpen
-          ? `<div class="callout success"><strong>Full bracket picks are open now.</strong> Predict every knockout winner through the Final, then submit once. Deadline: ${formatWindowDeadline(bracketWindow)}.</div>`
-          : getWindowStatus('knockoutBracket').state === 'closed'
-            ? `<div class="callout warning"><strong>Knockout submissions are closed.</strong> The deadline was ${formatWindowDeadline(bracketWindow)}. Round of 32 games are underway — no further picks will be accepted.</div>`
-            : ''
+        getWindowStatus('knockoutBracket').state === 'closed'
+          ? `<div class="callout warning"><strong>Knockout submissions are closed.</strong> The deadline was ${formatWindowDeadline(bracketWindow)}. View submitted brackets on the <strong>Bracket</strong> tab.</div>`
+          : ''
       }
       <p class="muted">
-        Work through the tournament bracket on the <strong>Knockout</strong> tab. Later rounds show the teams you picked to win earlier games.
+        Submissions are closed. Use the <strong>Bracket</strong> tab to view each player's picks.
       </p>
       <div class="callout">
         <strong>Submission window:</strong>
         ${formatWindowRange(bracketWindow)}
         &nbsp; ${renderStatusBadge('knockoutBracket')}
       </div>
-      <p class="muted">Matches 73–76 are locked to official results (CAN, PAR, MAR, BRA). Bracket paths follow the official FIFA feed.</p>
-      <p class="muted">See the <strong>Rules</strong> tab for scoring.</p>
+      <p class="muted">Matches 73–76 are locked to official results (CAN, PAR, MAR, BRA).</p>
     </section>
+
+    ${renderRules()}
   `;
 }
 
 function renderRules() {
   const g = GAME_CONFIG.scoring.group;
   const k = GAME_CONFIG.scoring.knockout;
-  const knockoutHeading = canEditKnockoutBracket()
-    ? 'Scoring — Knockout bracket (open now)'
-    : 'Scoring — Knockout stage';
 
   return `
-    <section class="panel">
-      <h2>Scoring — Group stage</h2>
+    <section class="panel" id="rules">
+      <h2>Rules &amp; scoring</h2>
+      <h3>Group stage</h3>
       <p class="muted">Points awarded for correctly ranking teams in each group.</p>
       <ul>
         <li><strong>${g.perPosition} point</strong> for each team in the correct finishing position (1st–4th).</li>
         <li><strong>${g.winnerBonus} bonus point</strong> for correctly picking the group winner.</li>
       </ul>
 
-      <h2>${knockoutHeading}</h2>
+      <h3>Knockout stage</h3>
       <p class="muted">Points awarded for selecting the correct winner of each game. Point values increase each round:</p>
       <ul>
         <li>Round of 32 — <strong>${k.r32} point</strong></li>
@@ -354,7 +340,7 @@ function renderRules() {
         Predict the score as <strong>winner–loser</strong> (e.g. 4–3), not home/away.
       </p>
 
-      <h2>Winner</h2>
+      <h3>Winner</h3>
       <p class="muted">
         The person with the highest combined point total from both the Group and Knockout stages wins the pool.
       </p>
@@ -367,114 +353,50 @@ function renderRules() {
   `;
 }
 
-function formatStandingsUpdatedAt(iso) {
-  if (!iso) return '';
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
+function entryViewerKey(entry) {
+  const email = (entry.email ?? '').trim().toLowerCase();
+  return email || entry.name.trim().toLowerCase();
 }
 
-function renderGroupStandingsTable(rows) {
-  if (!rows?.length) {
-    return '<p class="muted">No standings yet.</p>';
+function resolveDefaultBracketViewerKey(entries) {
+  const email = (state.playerEmail ?? '').trim().toLowerCase();
+  if (email && entries.some((e) => (e.email ?? '').trim().toLowerCase() === email)) {
+    return email;
   }
-
-  return `
-    <table class="group-standings-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Team</th>
-          <th>MP</th>
-          <th>W</th>
-          <th>D</th>
-          <th>L</th>
-          <th>GD</th>
-          <th>Pts</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows
-          .map(
-            (row) => `
-          <tr class="${row.rank <= 2 ? 'qualifying' : ''}">
-            <td>${row.rank}</td>
-            <td class="team-cell">
-              ${
-                row.flag
-                  ? `<img class="team-flag" src="${row.flag}" alt="" width="20" height="15" loading="lazy" />`
-                  : ''
-              }
-              ${row.name}
-            </td>
-            <td>${row.mp}</td>
-            <td>${row.w}</td>
-            <td>${row.d}</td>
-            <td>${row.l}</td>
-            <td>${row.gd > 0 ? `+${row.gd}` : row.gd}</td>
-            <td><strong>${row.pts}</strong></td>
-          </tr>`
-          )
-          .join('')}
-      </tbody>
-    </table>`;
+  const name = (state.playerName ?? '').trim().toLowerCase();
+  if (name) {
+    const match = entries.find((e) => e.name.trim().toLowerCase() === name);
+    if (match) return entryViewerKey(match);
+  }
+  const withPicks = entries.find((e) => countKnockoutPicks(e.knockout) > 0);
+  return entryViewerKey(withPicks ?? entries[0]);
 }
 
-function renderGroups() {
-  const standings = state.liveResults?.standings ?? {};
-  const updatedAt = state.liveResults?.updatedAt;
-  const liveCount = state.liveResults?.groupsWithMatches ?? 0;
-  const sortedGroups = [...GROUPS].sort((a, b) => a.id.localeCompare(b.id));
-
-  if (isFetchingGroupStandings && !Object.keys(standings).length) {
-    return `
-      <section class="panel">
-        <h2>Live group rankings</h2>
-        <p class="muted">Loading standings…</p>
-      </section>`;
+function renderBracketViewerTeam(code, isPick) {
+  if (!code) {
+    return '<div class="bracket-viewer-team muted"><span>—</span></div>';
   }
-
+  const flag = getTeamFlagUrl(code);
   return `
-    <section class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-        <h2>Live group rankings</h2>
-        ${renderStatusBadge('groupStage')}
-      </div>
-      <div class="callout">
-        <strong>Group stage entries are closed.</strong>
-        Live tables below update automatically as matches are played.
-      </div>
-      <p class="muted">
-        ${
-          updatedAt
-            ? `${liveCount}/12 groups with results · updated ${formatStandingsUpdatedAt(updatedAt)}`
-            : 'Standings will appear once match results are available.'
-        }
-      </p>
-      <div class="actions-row" style="margin-bottom:1rem">
-        <button class="ghost" id="refresh-group-standings" ${isFetchingGroupStandings ? 'disabled' : ''}>
-          ${isFetchingGroupStandings ? 'Refreshing…' : 'Refresh standings'}
-        </button>
-      </div>
+    <div class="bracket-viewer-team${isPick ? ' is-pick' : ''}">
+      ${flag ? `<img class="bracket-viewer-flag" src="${flag}" alt="" width="24" height="18" loading="lazy" />` : ''}
+      <span>${getTeamName(code)}</span>
+    </div>`;
+}
 
-      <div class="group-rankings-grid">
-        ${sortedGroups
-          .map((group) => {
-            const rows = standings[group.id] ?? [];
-            return `
-            <article class="group-card">
-              <h3>${group.name}</h3>
-              ${renderGroupStandingsTable(rows)}
-            </article>`;
-          })
-          .join('')}
+function renderBracketViewerMatch(match, bracketContext, picks) {
+  const { home, away } = resolveMatchParticipants(match, bracketContext);
+  const pick = picks[match.id] ?? '';
+  return `
+    <article class="bracket-viewer-match">
+      <div class="bracket-viewer-match-label">${match.label}</div>
+      <p class="muted bracket-viewer-desc">${match.description}</p>
+      <div class="bracket-viewer-matchup">
+        ${renderBracketViewerTeam(home.code, pick === home.code)}
+        <span class="bracket-viewer-vs">vs</span>
+        ${renderBracketViewerTeam(away.code, pick === away.code)}
       </div>
-      <p class="muted" style="margin-top:1rem">
-        Top two in each group advance to the knockout stage. Data source: FIFA World Cup 2026 live feed.
-      </p>
-    </section>
-  `;
+    </article>`;
 }
 
 function collectKnockoutPicksFromDom(entry) {
@@ -492,168 +414,82 @@ function collectKnockoutPicksFromDom(entry) {
   return entry;
 }
 
-function syncKnockoutRoundExpansion() {
-  document.querySelectorAll('details[data-knockout-round]').forEach((el) => {
-    const key = el.dataset.knockoutRound;
-    if (!key) return;
-    if (el.open) expandedKnockoutRounds.add(key);
-    else expandedKnockoutRounds.delete(key);
-  });
-}
+function renderKnockout() {
+  const entries = getLeaderboardEntries(state);
+  const effectiveResults = getEffectiveResults(state);
 
-function renderKnockoutSubmitCallout(entry) {
-  const w = GAME_CONFIG.windows.knockoutBracket;
-  const status = getWindowStatus('knockoutBracket');
-  if (!isKnockoutSubmissionOpen() && !isAdminUnlocked()) {
-    if (status.state === 'closed') {
-      return `<div class="callout warning"><strong>Knockout submissions are closed.</strong> The deadline was ${formatWindowDeadline(w)}. You can still view the bracket and track the leaderboard.</div>`;
-    }
-    return `<div class="callout warning"><strong>Preview mode.</strong> Bracket picks open ${formatWindowRange(w)}. Save your name and email before submitting.</div>`;
+  if (!entries.length) {
+    return `
+      <section class="panel">
+        <h2>Bracket viewer</h2>
+        <p class="muted">No pool entries yet.</p>
+      </section>`;
   }
-  if (isAdminUnlocked() && !isKnockoutSubmissionOpen()) {
-    return `<div class="callout success"><strong>Admin test mode.</strong> Bracket picks are unlocked for this session.</div>`;
-  }
-  if (!entry.name) {
-    return `<div class="callout warning"><strong>Save your name and email</strong> in the header before submitting picks.</div>`;
-  }
-  if (!isSharePointConfigured()) {
-    return `<div class="callout warning"><strong>Submission pending setup.</strong> See <code>docs/knockout-setup.md</code>.</div>`;
-  }
-  if (canEditKnockoutBracket()) {
-    return `<div class="callout success"><strong>Full bracket is open.</strong> Pick every winner left-to-right through the Final. Later rounds only show teams from <strong>your</strong> earlier picks — on the path FIFA assigns, not random pairings. Match 73 is locked to Canada. Submit once when complete.</div>`;
-  }
-  return `<div class="callout success"><strong>Ready to submit</strong> when your window opens.</div>`;
-}
 
-function renderKnockoutMatchCard(match, entry, bracketContext) {
-  const { home, away } = resolveMatchParticipants(match, bracketContext);
-  const locked = isMatchPickLocked(match.id);
-  const editable = canEditKnockoutMatch(match);
-  const lockedWinner = locked ? getLockedKnockoutResults()[match.id] : '';
-  const pick = locked ? lockedWinner : (entry.knockout?.[match.id] ?? '');
-  const points = ROUND_POINTS[match.round];
+  if (
+    !bracketViewerKey ||
+    !entries.some((e) => entryViewerKey(e) === bracketViewerKey)
+  ) {
+    bracketViewerKey = resolveDefaultBracketViewerKey(entries);
+  }
+
+  const selected =
+    entries.find((e) => entryViewerKey(e) === bracketViewerKey) ?? entries[0];
+  bracketViewerKey = entryViewerKey(selected);
+
+  const knockout = applyLockedKnockoutPicks(selected.knockout ?? {});
+  const bracketContext = getEntryBracketContext(selected, effectiveResults);
+  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
+  const hasPicks = countKnockoutPicks(knockout) > 0;
+  const finalScore = formatFinalScorePick(selected.finalScore, knockout.final);
 
   return `
-    <article class="knockout-match bracket-match${locked ? ' result-locked' : ''}${editable ? '' : ' locked'}">
-      <header class="knockout-match-header">
-        <span class="knockout-match-label">${match.label}</span>
-        ${locked ? '<span class="status-badge closed">Result locked</span>' : ''}
-        <span class="knockout-match-pts muted">${points} pt${points === 1 ? '' : 's'}</span>
-      </header>
-      <p class="muted knockout-match-desc">${match.description}</p>
-      <div class="knockout-match-teams">
-        <span class="knockout-team${pick === home.code ? ' is-picked' : ''}">${home.label}</span>
-        <span class="knockout-vs">vs</span>
-        <span class="knockout-team${pick === away.code ? ' is-picked' : ''}">${away.label}</span>
-      </div>
-      <label class="knockout-pick-label">
-        Winner
-        <select data-knockout-match="${match.id}" ${editable ? '' : 'disabled'}>
-          ${buildWinnerOptionsHtml(match, pick, bracketContext)}
+    <section class="panel knockout-viewer-panel">
+      <h2>Bracket viewer</h2>
+      <p class="muted">Select a player to view their knockout bracket. Highlighted team = their pick to win that match.</p>
+
+      <label class="bracket-viewer-select">
+        Player
+        <select id="bracket-viewer-player">
+          ${entries
+            .map((entry) => {
+              const key = entryViewerKey(entry);
+              const pickCount = countKnockoutPicks(entry.knockout);
+              return `<option value="${key}" ${key === bracketViewerKey ? 'selected' : ''}>${entry.name}${pickCount ? '' : ' (no bracket)'}</option>`;
+            })
+            .join('')}
         </select>
       </label>
-    </article>`;
-}
 
-function renderKnockout() {
-  const entry = ensureEntry();
-  const effectiveResults = getEffectiveResults(state);
-  const bracketContext = getPickBracketContext(state, effectiveResults);
-  const bracketOpen = canEditKnockoutBracket();
-  const picksCount = countKnockoutPicks(entry.knockout);
-  const bracketWindow = GAME_CONFIG.windows.knockoutBracket;
-  const finalWinner = entry.knockout?.final ?? '';
-  const finalScorePick = coerceFinalScore(entry.finalScore);
+      ${
+        !hasPicks
+          ? '<p class="callout warning" style="margin-top:1rem"><strong>No bracket submitted.</strong> This player has not entered knockout picks yet.</p>'
+          : ''
+      }
+      ${
+        finalScore
+          ? `<p class="muted" style="margin-top:0.75rem">Final score pick: <strong>${finalScore}</strong></p>`
+          : ''
+      }
 
-  return `
-    <section class="panel knockout-panel">
-      <h2>Tournament bracket</h2>
-
-      <div class="callout">
-        <strong>How it works</strong>
-        <ul class="muted" style="margin:0.5rem 0 0;padding-left:1.2rem">
-          <li>Round of 32 teams come from live group standings.</li>
-          <li>Every later round shows only the winners <strong>you</strong> picked in the previous round.</li>
-          <li><strong>Matches 73–76</strong> are locked — Canada, Paraguay, Morocco, and Brazil won (played before the submission deadline).</li>
-          <li>Round of 16 uses official FIFA feeds (e.g. Canada meets Winner M75, not Germany).</li>
-          <li>Fill in all ${KNOCKOUT_MATCHES.length} winners + Final score, then submit once.</li>
-        </ul>
-      </div>
-
-      <p class="muted">
-        ${picksCount} / ${KNOCKOUT_MATCHES.length} winners picked ·
-        ${renderStatusBadge('knockoutBracket')}
-        (${formatWindowRange(bracketWindow)})
-      </p>
-
-      ${renderKnockoutSubmitCallout(entry)}
-
-      <div class="bracket-board" aria-label="Knockout tournament bracket">
-        ${BRACKET_TREE.map(
-          (column) => `
-        <div class="bracket-column" data-round="${column.round}">
-          <h3 class="bracket-column-title">${column.label}</h3>
-          <div class="bracket-column-pairs">
-            ${column.pairs
-              .map((pair) => {
-                const [topId, bottomId] = pair;
-                const top = topId
-                  ? renderKnockoutMatchCard(
-                      KNOCKOUT_MATCHES.find((m) => m.id === topId),
-                      entry,
-                      bracketContext
-                    )
-                  : '';
-                const bottom =
-                  bottomId && column.round !== 'final'
-                    ? renderKnockoutMatchCard(
-                        KNOCKOUT_MATCHES.find((m) => m.id === bottomId),
-                        entry,
-                        bracketContext
-                      )
-                    : bottomId
-                      ? ''
-                      : '';
-                return `<div class="bracket-pair">${top}${bottom}</div>`;
-              })
-              .join('')}
-          </div>
-        </div>`
-        ).join('')}
-      </div>
-
-      <details class="knockout-round" data-knockout-round="final-score" open>
-        <summary class="knockout-round-heading">Final match score (tiebreaker)</summary>
-        <div class="knockout-round-body">
-          <p class="muted">
-            Does not earn points — breaks ties on total pool points.
-            Enter the score as <strong>winner–loser</strong> (e.g. 4–3), matching the team you picked to win the Final above.
-          </p>
-          ${
-            finalWinner
-              ? `<p class="muted"><strong>Your Final winner:</strong> ${getTeamName(finalWinner)}</p>`
-              : `<p class="muted callout warning" style="margin-top:0.5rem">Pick a Final winner in the bracket first.</p>`
-          }
-          <div class="final-score-row">
-            <label>Winner goals
-              <input type="number" id="final-score-winner" min="0" max="20" placeholder="4"
-                value="${finalScorePick.winnerGoals ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
-            </label>
-            <span class="knockout-vs">–</span>
-            <label>Loser goals
-              <input type="number" id="final-score-loser" min="0" max="20" placeholder="3"
-                value="${finalScorePick.loserGoals ?? ''}" ${canEditFinalScore() ? '' : 'disabled'} />
-            </label>
-          </div>
-        </div>
-      </details>
-
-      <div class="actions-row">
-        ${
-          bracketOpen
-            ? `<button class="primary" id="submit-knockout-full" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? 'Submitting…' : 'Submit full bracket'}</button>`
-            : ''
-        }
+      <div class="bracket-viewer">
+        ${rounds
+          .map((round, roundIndex) => {
+            const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
+            return `
+          <section class="bracket-viewer-round">
+            ${roundIndex > 0 ? '<div class="bracket-viewer-connector" aria-hidden="true"></div>' : ''}
+            <h3 class="bracket-viewer-round-title">${ROUND_LABELS[round]}</h3>
+            <div class="bracket-viewer-round-matches">
+              ${matches
+                .map((match) =>
+                  renderBracketViewerMatch(match, bracketContext, knockout)
+                )
+                .join('')}
+            </div>
+          </section>`;
+          })
+          .join('')}
       </div>
     </section>`;
 }
@@ -758,13 +594,8 @@ function renderLeaderboard() {
           : `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} registered</p>`
       }
       ${
-        (GAME_CONFIG.knockoutFairnessAutoCredit?.length ?? 0) > 0
-          ? `<p class="muted">Knockout fairness: Matches 73–76 (played before the Jun 30 deadline) count as <strong>1 pt each for every player</strong> — no advantage from knowing those results.</p>`
-          : ''
-      }
-      ${
         !hasKnockoutResults
-          ? '<p class="muted">Remaining knockout points appear once later-round results are entered in Admin.</p>'
+          ? '<p class="muted">Knockout points update as later-round results are entered in Admin.</p>'
           : ''
       }
       <table class="score-table">
@@ -782,6 +613,8 @@ function renderLeaderboard() {
             .map((row) => {
               const key = leaderboardPlayerKey(row);
               const expanded = expandedLeaderboardKeys.has(key);
+              const displayKo = getDisplayKnockoutPoints(row.knockoutPoints);
+              const displayTotal = row.groupPoints + displayKo;
               return `
             <tr
               class="leaderboard-summary${expanded ? ' is-expanded' : ''}"
@@ -798,8 +631,8 @@ function renderLeaderboard() {
                 </span>
               </td>
               <td><strong>${row.groupPoints}</strong><span class="muted"> / ${getMaxGroupPoints()}</span></td>
-              <td><strong>${row.knockoutPoints}</strong><span class="muted"> / ${maxKnockout}</span></td>
-              <td><strong>${row.totalPoints}</strong></td>
+              <td><strong>${displayKo}</strong><span class="muted"> / ${maxKnockout}</span></td>
+              <td><strong>${displayTotal}</strong></td>
             </tr>
             <tr class="leaderboard-details${expanded ? ' is-expanded' : ''}" data-leaderboard-details="${key}">
               <td colspan="5">
@@ -944,10 +777,6 @@ function renderAdmin() {
 
 function renderTabContent() {
   switch (activeTab) {
-    case 'rules':
-      return renderRules();
-    case 'groups':
-      return renderGroups();
     case 'knockout':
       return renderKnockout();
     case 'leaderboard':
@@ -960,13 +789,13 @@ function renderTabContent() {
 }
 
 function render() {
-  syncKnockoutRoundExpansion();
+  if (activeTab === 'rules' || activeTab === 'groups') {
+    activeTab = 'home';
+  }
   const app = document.getElementById('app');
   const tabs = [
     { id: 'home', label: 'Home' },
-    { id: 'rules', label: 'Rules' },
-    { id: 'groups', label: 'Group Rankings' },
-    { id: 'knockout', label: 'Knockout' },
+    { id: 'knockout', label: 'Bracket' },
     { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'admin', label: 'Admin' },
   ];
@@ -1015,7 +844,7 @@ function render() {
   `;
 
   bindEvents();
-  if (activeTab === 'leaderboard' || activeTab === 'groups' || activeTab === 'knockout') {
+  if (activeTab === 'leaderboard' || activeTab === 'knockout') {
     startLiveResultsPolling();
   } else {
     stopLiveResultsPolling();
@@ -1031,10 +860,15 @@ function bindEvents() {
         refreshLiveResults(true);
         refreshLeaderboard(true);
       }
-      if (activeTab === 'groups' || activeTab === 'knockout') {
+      if (activeTab === 'knockout') {
         refreshLiveResults(true);
       }
     });
+  });
+
+  document.getElementById('bracket-viewer-player')?.addEventListener('change', (event) => {
+    bracketViewerKey = event.target.value;
+    render();
   });
 
   document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
@@ -1061,10 +895,6 @@ function bindEvents() {
         toggle();
       }
     });
-  });
-
-  document.getElementById('refresh-group-standings')?.addEventListener('click', () => {
-    refreshLiveResults(true);
   });
 
   document.getElementById('save-name')?.addEventListener('click', () => {
