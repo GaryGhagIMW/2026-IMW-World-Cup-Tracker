@@ -77,6 +77,8 @@ export const GAME_CONFIG = {
       endTime: '10:00',
       endTimeOffset: '-08:00',
       endTimeLabel: 'PST',
+      /** Closed manually at deadline — Jun 30, 2026 10:00 AM PST. */
+      submissionsClosed: true,
       description:
         'Predict the entire knockout bracket through the Final and submit once.',
     },
