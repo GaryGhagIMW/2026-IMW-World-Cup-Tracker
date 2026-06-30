@@ -372,21 +372,36 @@ function resolveDefaultBracketViewerKey(entries) {
   return entryViewerKey(withPicks ?? entries[0]);
 }
 
-function renderBracketViewerTeam(code, isPick) {
+function renderBracketViewerTeam(code, isPick, { compact = false } = {}) {
   if (!code) {
-    return '<div class="bracket-viewer-team muted"><span>—</span></div>';
+    return `<div class="bracket-viewer-team muted${compact ? ' bracket-viewer-team--compact' : ''}"><span>—</span></div>`;
   }
   const flag = getTeamFlagUrl(code);
+  const name = getTeamName(code);
+  const flagSize = compact ? 'width="18" height="13"' : 'width="24" height="18"';
   return `
-    <div class="bracket-viewer-team${isPick ? ' is-pick' : ''}">
-      ${flag ? `<img class="bracket-viewer-flag" src="${flag}" alt="" width="24" height="18" loading="lazy" />` : ''}
-      <span>${getTeamName(code)}</span>
+    <div class="bracket-viewer-team${isPick ? ' is-pick' : ''}${compact ? ' bracket-viewer-team--compact' : ''}" title="${name}">
+      ${flag ? `<img class="bracket-viewer-flag" src="${flag}" alt="" ${flagSize} loading="lazy" />` : ''}
+      <span class="bracket-viewer-team-name">${name}</span>
     </div>`;
 }
 
-function renderBracketViewerMatch(match, bracketContext, picks) {
+function renderBracketViewerMatch(match, bracketContext, picks, { compact = false } = {}) {
   const { home, away } = resolveMatchParticipants(match, bracketContext);
   const pick = picks[match.id] ?? '';
+  const matchTag = match.label.replace('Match ', 'M');
+
+  if (compact) {
+    return `
+    <article class="bracket-viewer-match bracket-viewer-match--compact" title="${match.description}">
+      <div class="bracket-viewer-match-label">${matchTag}</div>
+      <div class="bracket-viewer-matchup">
+        ${renderBracketViewerTeam(home.code, pick === home.code, { compact: true })}
+        ${renderBracketViewerTeam(away.code, pick === away.code, { compact: true })}
+      </div>
+    </article>`;
+  }
+
   return `
     <article class="bracket-viewer-match">
       <div class="bracket-viewer-match-label">${match.label}</div>
@@ -398,6 +413,13 @@ function renderBracketViewerMatch(match, bracketContext, picks) {
       </div>
     </article>`;
 }
+
+const BRACKET_FUNNEL_CONNECTOR = {
+  r16: 96,
+  qf: 78,
+  sf: 52,
+  final: 32,
+};
 
 function collectKnockoutPicksFromDom(entry) {
   document.querySelectorAll('[data-knockout-match]').forEach((sel) => {
@@ -446,7 +468,7 @@ function renderKnockout() {
   return `
     <section class="panel knockout-viewer-panel">
       <h2>Bracket viewer</h2>
-      <p class="muted">Select a player to view their knockout bracket. Highlighted team = their pick to win that match.</p>
+      <p class="muted">Select a player to view their knockout bracket. Each round is one row — wide at the top (Round of 32), narrowing to the Final. Gold highlight = their pick to win.</p>
 
       <label class="bracket-viewer-select">
         Player
@@ -472,18 +494,21 @@ function renderKnockout() {
           : ''
       }
 
-      <div class="bracket-viewer">
+      <div class="bracket-funnel" aria-label="Knockout bracket funnel">
         ${rounds
-          .map((round, roundIndex) => {
+          .map((round) => {
             const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
+            const connectorPct = BRACKET_FUNNEL_CONNECTOR[round];
             return `
-          <section class="bracket-viewer-round">
-            ${roundIndex > 0 ? '<div class="bracket-viewer-connector" aria-hidden="true"></div>' : ''}
+          ${connectorPct != null ? `<div class="bracket-funnel-connector" style="--connector-width: ${connectorPct}%" aria-hidden="true"></div>` : ''}
+          <section class="bracket-viewer-round" data-round="${round}">
             <h3 class="bracket-viewer-round-title">${ROUND_LABELS[round]}</h3>
             <div class="bracket-viewer-round-matches">
               ${matches
                 .map((match) =>
-                  renderBracketViewerMatch(match, bracketContext, knockout)
+                  renderBracketViewerMatch(match, bracketContext, knockout, {
+                    compact: true,
+                  })
                 )
                 .join('')}
             </div>
