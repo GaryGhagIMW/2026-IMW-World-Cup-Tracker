@@ -22,7 +22,6 @@ import {
   countKnockoutPicks,
   coerceFinalScore,
   formatFinalScorePick,
-  getDisplayKnockoutPoints,
 } from './lib/scoring.js';
 import {
   loadState,
@@ -688,7 +687,7 @@ function renderLeaderboard() {
       }
       ${
         isLiveResultsEnabled() && hasKnockoutResults
-          ? `<p class="muted">Knockout scoring live — ${koFinished}/${KNOCKOUT_MATCHES.length} results in · includes hidden +4 pt baseline for Matches 73–76</p>`
+          ? `<p class="muted">Knockout scoring live — ${koFinished}/${KNOCKOUT_MATCHES.length} results in · includes +4 pt baseline for Matches 73–76</p>`
           : !hasKnockoutResults
             ? '<p class="muted">Knockout points update as results come in from the live API.</p>'
             : ''
@@ -708,8 +707,8 @@ function renderLeaderboard() {
             .map((row) => {
               const key = leaderboardPlayerKey(row);
               const expanded = expandedLeaderboardKeys.has(key);
-              const displayKo = getDisplayKnockoutPoints(row.knockoutPoints);
-              const displayTotal = row.groupPoints + displayKo;
+              const koPts = row.knockoutPoints;
+              const totalPts = row.groupPoints + koPts;
               return `
             <tr
               class="leaderboard-summary${expanded ? ' is-expanded' : ''}"
@@ -726,8 +725,8 @@ function renderLeaderboard() {
                 </span>
               </td>
               <td><strong>${row.groupPoints}</strong><span class="muted"> / ${getMaxGroupPoints()}</span></td>
-              <td><strong>${displayKo}</strong><span class="muted"> / ${maxKnockout}</span></td>
-              <td><strong>${displayTotal}</strong></td>
+              <td><strong>${koPts}</strong><span class="muted"> / ${maxKnockout}</span></td>
+              <td><strong>${totalPts}</strong></td>
             </tr>
             <tr class="leaderboard-details${expanded ? ' is-expanded' : ''}" data-leaderboard-details="${key}">
               <td colspan="5">

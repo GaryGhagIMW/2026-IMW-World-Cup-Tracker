@@ -189,8 +189,9 @@ export function getKnockoutAutoCreditPoints() {
   }, 0);
 }
 
+/** KO pts shown on leaderboard (includes fairness baseline for Matches 73–76). */
 export function getDisplayKnockoutPoints(knockoutPoints) {
-  return Math.max(0, knockoutPoints - getKnockoutAutoCreditPoints());
+  return knockoutPoints ?? 0;
 }
 
 export function scoreEntry(entry, results) {
