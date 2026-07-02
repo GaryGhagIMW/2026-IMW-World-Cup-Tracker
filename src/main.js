@@ -902,7 +902,11 @@ function render() {
   app.innerHTML = `
     <div class="site-sticky-header">
       <div class="canada-banner" role="banner" aria-label="Go Canada Go">
-        <span class="canada-banner-text">🇨🇦 GO CANADA GO 🇨🇦</span>
+        <span class="canada-banner-text">
+          <img class="canada-banner-flag" src="${getTeamFlagUrl('CAN')}" alt="" width="28" height="21" loading="eager" />
+          GO CANADA GO
+          <img class="canada-banner-flag" src="${getTeamFlagUrl('CAN')}" alt="" width="28" height="21" loading="eager" />
+        </span>
       </div>
       <div class="site-topbar">
         <div class="site-topbar-inner">
