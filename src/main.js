@@ -900,13 +900,29 @@ function render() {
   state.isAdmin = isAdminUnlocked();
 
   app.innerHTML = `
-    <div class="site-topbar">
-      <div class="site-topbar-inner">
-        <a href="${GAME_CONFIG.website}" target="_blank" rel="noopener">
-          <img src="${LOGO_URL}" alt="IMW Industries" width="120" height="42" />
-        </a>
-        <a class="org-link" href="${GAME_CONFIG.website}" target="_blank" rel="noopener">imw.ca</a>
+    <div class="site-sticky-header">
+      <div class="canada-banner" role="banner" aria-label="Go Canada Go">
+        <span class="canada-banner-text">🇨🇦 GO CANADA GO 🇨🇦</span>
       </div>
+      <div class="site-topbar">
+        <div class="site-topbar-inner">
+          <a href="${GAME_CONFIG.website}" target="_blank" rel="noopener">
+            <img src="${LOGO_URL}" alt="IMW Industries" width="120" height="42" />
+          </a>
+          <a class="org-link" href="${GAME_CONFIG.website}" target="_blank" rel="noopener">imw.ca</a>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        ${tabs
+          .map((t) => {
+            if (t.soon && activeTab !== t.id) {
+              return `<button type="button" data-tab="${t.id}" class="${activeTab === t.id ? 'active' : ''}" title="Opens after group stage">${t.label}</button>`;
+            }
+            return `<button type="button" data-tab="${t.id}" class="${activeTab === t.id ? 'active' : ''}">${t.label}</button>`;
+          })
+          .join('')}
+      </nav>
     </div>
 
     <header class="app-header">
@@ -920,17 +936,6 @@ function render() {
         <button class="secondary" id="save-name" style="align-self:end">Save</button>
       </div>
     </header>
-
-    <nav class="tabs">
-      ${tabs
-        .map((t) => {
-          if (t.soon && activeTab !== t.id) {
-            return `<button type="button" data-tab="${t.id}" class="${activeTab === t.id ? 'active' : ''}" title="Opens after group stage">${t.label}</button>`;
-          }
-          return `<button type="button" data-tab="${t.id}" class="${activeTab === t.id ? 'active' : ''}">${t.label}</button>`;
-        })
-        .join('')}
-    </nav>
 
     <main>${renderTabContent()}</main>
 
