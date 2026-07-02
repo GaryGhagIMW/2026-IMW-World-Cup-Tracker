@@ -1,7 +1,14 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS } from '../data/groups.js';
 import { FINAL_GROUP_STANDINGS } from '../data/final-group-standings.js';
-import { createEmptyGroupPredictions, createEmptyFinalScore } from './scoring.js';
+import { KNOCKOUT_MATCHES } from '../data/knockout.js';
+import { getLockedKnockoutResults } from './knockout-bracket.js';
+import {
+  createEmptyGroupPredictions,
+  createEmptyFinalScore,
+  createEmptyKnockoutPredictions,
+  coerceFinalScore,
+} from './scoring.js';
 import { assetUrl } from './base.js';
 import { fetchWorldCupStandings } from './worldcup-api.js';
 
@@ -13,6 +20,33 @@ export function isLiveResultsEnabled() {
 
 function emptyGroupMap() {
   return createEmptyGroupPredictions();
+}
+
+function mergeKnockoutResults(live, manual) {
+  const merged = createEmptyKnockoutPredictions();
+  const locked = getLockedKnockoutResults();
+  const liveKnockout = live?.knockout ?? {};
+  const manualKnockout = manual?.knockout ?? {};
+
+  for (const match of KNOCKOUT_MATCHES) {
+    merged[match.id] =
+      manualKnockout[match.id] ||
+      liveKnockout[match.id] ||
+      locked[match.id] ||
+      '';
+  }
+
+  let finalScore = createEmptyFinalScore();
+  const manualFinal = coerceFinalScore(manual?.finalScore);
+  const liveFinal = coerceFinalScore(live?.finalScore);
+
+  if (manualFinal.winnerGoals != null && manualFinal.loserGoals != null) {
+    finalScore = manualFinal;
+  } else if (liveFinal.winnerGoals != null && liveFinal.loserGoals != null) {
+    finalScore = liveFinal;
+  }
+
+  return { knockout: merged, finalScore };
 }
 
 /** Merge live standings with optional manual admin overrides (admin wins per group). */
@@ -48,14 +82,21 @@ export function mergeResults(live, manual) {
     }
   }
 
+  const { knockout, finalScore } = mergeKnockoutResults(live, manual);
+
   return {
     groups: merged,
-    knockout: manual?.knockout ?? {},
-    finalScore: createEmptyFinalScore(),
+    knockout,
+    finalScore,
     updatedAt: live?.updatedAt ?? manual?.updatedAt ?? null,
     source: live?.source ?? 'manual',
     groupsWithMatches: live?.groupsWithMatches ?? 0,
+    knockoutMatchesFinished: live?.knockoutMatchesFinished ?? countKnockoutResults(knockout),
   };
+}
+
+export function countKnockoutResults(knockout = {}) {
+  return KNOCKOUT_MATCHES.filter((m) => Boolean(knockout[m.id])).length;
 }
 
 export function hasScoringResults(results) {
@@ -65,33 +106,54 @@ export function hasScoringResults(results) {
   );
 }
 
+export function hasKnockoutScoringResults(results) {
+  return countKnockoutResults(results?.knockout) > 0;
+}
+
 export function getResultsLabel(results, liveMeta) {
-  if (!hasScoringResults(results)) {
+  const koFinished =
+    liveMeta?.knockoutMatchesFinished ??
+    countKnockoutResults(results?.knockout);
+  const koTotal = KNOCKOUT_MATCHES.length;
+
+  if (!hasScoringResults(results) && !hasKnockoutScoringResults(results)) {
     return 'Enter results in Admin or wait for live standings to populate.';
   }
+
   if (liveMeta?.updatedAt) {
     const when = new Date(liveMeta.updatedAt).toLocaleString(undefined, {
       dateStyle: 'medium',
       timeStyle: 'short',
     });
-    const liveCount = liveMeta.groupsWithMatches ?? 0;
     const via = liveMeta.source === 'worldcup26.ir' ? 'live API' : 'cached file';
-    if (liveCount > 0) {
-      return `Live standings · ${liveCount}/12 groups in play · ${via} · updated ${when}`;
-    }
-    return `Standings (${via}) updated ${when} · waiting for match results`;
+    const parts = [];
+
+    parts.push(`Group pts locked · KO ${koFinished}/${koTotal} decided`);
+    parts.push(`${via} · updated ${when}`);
+
+    return parts.join(' · ');
   }
+
+  if (hasKnockoutScoringResults(results)) {
+    return `Group pts locked · KO ${koFinished}/${koTotal} decided · organizer-entered results`;
+  }
+
   return 'Using organizer-entered results.';
 }
 
 function scoreLivePayload(payload) {
   if (!payload) return -1;
   const groupsWithMatches = payload.groupsWithMatches ?? 0;
+  const knockoutFinished = payload.knockoutMatchesFinished ?? 0;
   const updatedAt = payload.updatedAt ? Date.parse(payload.updatedAt) : 0;
-  return groupsWithMatches * 1_000_000_000_000 + updatedAt;
+  return (
+    knockoutFinished * 1_000_000_000_000_000 +
+    groupsWithMatches * 1_000_000_000_000 +
+    updatedAt
+  );
 }
 
-/** Prefer the payload with more group data; tie-break on updatedAt. */
+/** Prefer the payload with more group/knockout data; tie-break on updatedAt. */
 export function pickBestLiveResults(apiResult, fileResult) {
   if (apiResult && fileResult) {
     return scoreLivePayload(apiResult) >= scoreLivePayload(fileResult)
@@ -144,7 +206,7 @@ export async function fetchLiveResultsFile() {
 export function getEffectiveResults(state) {
   const manual = state.results ?? {
     groups: emptyGroupMap(),
-    knockout: {},
+    knockout: createEmptyKnockoutPredictions(),
     finalScore: createEmptyFinalScore(),
   };
 
@@ -158,11 +220,23 @@ export function getEffectiveResults(state) {
 
   // Manual admin overrides are local to one browser — only the organizer should
   // see them while testing. Everyone else uses the same live feed for scoring.
-  const manualForMerge = state.isAdmin ? manual : {
-    groups: emptyGroupMap(),
-    knockout: {},
-    finalScore: createEmptyFinalScore(),
-  };
+  const manualForMerge = state.isAdmin
+    ? manual
+    : {
+        groups: emptyGroupMap(),
+        knockout: createEmptyKnockoutPredictions(),
+        finalScore: createEmptyFinalScore(),
+      };
 
   return mergeResults(state.liveResults, manualForMerge);
+}
+
+/** Bracket context driven by official knockout results (Standings tab). */
+export function getOfficialBracketContext(effectiveResults) {
+  return {
+    groupStandings: effectiveResults?.groups ?? {},
+    picks: {},
+    results: effectiveResults ?? {},
+    preferPicks: false,
+  };
 }

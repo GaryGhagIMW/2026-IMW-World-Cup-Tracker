@@ -1,6 +1,17 @@
 /** Shared transform for worldcup26.ir API responses. */
 
+import { GAME_CONFIG } from '../data/config.js';
+import { KNOCKOUT_MATCHES } from '../data/knockout.js';
+import { createEmptyFinalScore } from './scoring.js';
+
 export const WORLDCUP_API_BASE = 'https://worldcup26.ir/get';
+
+const MATCH_ID_BY_GAME_ID = Object.fromEntries(
+  KNOCKOUT_MATCHES.map((match) => [
+    Number.parseInt(String(match.label).replace(/\D/g, ''), 10),
+    match.id,
+  ])
+);
 
 function toNum(value) {
   const n = Number(value);
@@ -158,9 +169,103 @@ export function buildGroupStandingsDetail(teams, groups, computedByGroup = {}) {
   return standings;
 }
 
+function buildTeamCodeMap(teams) {
+  return new Map(teams.map((t) => [String(t.id), t.fifa_code ?? '']));
+}
+
+/** Winner FIFA code for a finished knockout match (handles penalties). */
+export function resolveGameWinnerCode(game, teamById) {
+  if (!isGameFinished(game)) return '';
+
+  const homeCode = teamById.get(String(game.home_team_id)) ?? '';
+  const awayCode = teamById.get(String(game.away_team_id)) ?? '';
+  if (!homeCode || !awayCode) return '';
+
+  const homeScore = toNum(game.home_score);
+  const awayScore = toNum(game.away_score);
+
+  if (homeScore > awayScore) return homeCode;
+  if (awayScore > homeScore) return awayCode;
+
+  const homePen =
+    game.home_penalty_score != null && game.home_penalty_score !== ''
+      ? toNum(game.home_penalty_score)
+      : null;
+  const awayPen =
+    game.away_penalty_score != null && game.away_penalty_score !== ''
+      ? toNum(game.away_penalty_score)
+      : null;
+
+  if (homePen != null && awayPen != null && homePen !== awayPen) {
+    return homePen > awayPen ? homeCode : awayCode;
+  }
+
+  return '';
+}
+
+function buildFinalScoreFromGame(game, winnerCode, teamById) {
+  const finalScore = createEmptyFinalScore();
+  if (!winnerCode || !isGameFinished(game)) return finalScore;
+
+  const homeCode = teamById.get(String(game.home_team_id)) ?? '';
+  const awayCode = teamById.get(String(game.away_team_id)) ?? '';
+  const homeScore = toNum(game.home_score);
+  const awayScore = toNum(game.away_score);
+
+  let winnerGoals = null;
+  let loserGoals = null;
+
+  if (winnerCode === homeCode) {
+    winnerGoals = homeScore;
+    loserGoals = awayScore;
+  } else if (winnerCode === awayCode) {
+    winnerGoals = awayScore;
+    loserGoals = homeScore;
+  }
+
+  if (winnerGoals == null || loserGoals == null) {
+    return finalScore;
+  }
+
+  return { winnerGoals, loserGoals };
+}
+
+/** Map finished API games (M73–M104) to pool knockout result keys. */
+export function buildKnockoutResultsFromGames(games = [], teams = []) {
+  const teamById = buildTeamCodeMap(teams);
+  const locked = GAME_CONFIG.lockedKnockoutResults ?? {};
+  const knockout = Object.fromEntries(KNOCKOUT_MATCHES.map((m) => [m.id, '']));
+  let finalScore = createEmptyFinalScore();
+  let knockoutMatchesFinished = 0;
+
+  for (const game of games ?? []) {
+    if (String(game.type ?? '').toLowerCase() === 'group') continue;
+
+    const matchId = MATCH_ID_BY_GAME_ID[Number(game.id)];
+    if (!matchId) continue;
+
+    const winner = resolveGameWinnerCode(game, teamById) || locked[matchId] || '';
+    if (!winner) continue;
+
+    knockout[matchId] = winner;
+    knockoutMatchesFinished += 1;
+
+    if (matchId === 'final') {
+      finalScore = buildFinalScoreFromGame(game, winner, teamById);
+    }
+  }
+
+  for (const [matchId, winner] of Object.entries(locked)) {
+    if (!knockout[matchId]) knockout[matchId] = winner;
+  }
+
+  return { knockout, finalScore, knockoutMatchesFinished };
+}
+
 export function transformWorldCupPayload(teams, groups, games = []) {
   const teamById = new Map(teams.map((t) => [String(t.id), t]));
   const computedByGroup = buildStandingsFromGames(games);
+  const knockoutLive = buildKnockoutResultsFromGames(games, teams);
   const groupResults = {};
   let groupsWithMatches = 0;
 
@@ -193,6 +298,9 @@ export function transformWorldCupPayload(teams, groups, games = []) {
     ),
     meta: groupResults,
     standings: buildGroupStandingsDetail(teams, groups, computedByGroup),
+    knockout: knockoutLive.knockout,
+    finalScore: knockoutLive.finalScore,
+    knockoutMatchesFinished: knockoutLive.knockoutMatchesFinished,
   };
 }
 

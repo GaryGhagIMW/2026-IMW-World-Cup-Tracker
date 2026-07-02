@@ -112,13 +112,13 @@ export const GAME_CONFIG = {
 
   finalDate: '2026-07-19',
 
-  /** Auto-fetch group standings for live leaderboard scoring (see scripts/fetch-live-results.mjs). */
+  /** Auto-fetch knockout results for live leaderboard scoring (see scripts/fetch-live-results.mjs). */
   liveResults: {
     enabled: true,
     provider: 'worldcup26.ir',
     /** Pull directly from the API in the browser (falls back to live-results.json). */
     fetchFromApi: true,
-    /** Refresh while viewing the leaderboard (ms). */
+    /** Refresh while viewing the leaderboard or standings (ms). */
     refreshMs: 120_000,
   },
 };

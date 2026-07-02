@@ -1279,6 +1279,17 @@ footer a:hover {
   font-weight: 700;
 }
 
+.bracket-viewer-team.is-result {
+  color: var(--imw-blue-dark);
+  font-weight: 700;
+  background: rgba(34, 139, 84, 0.12);
+  border: 1px solid rgba(34, 139, 84, 0.35);
+}
+
+.bracket-viewer-team.is-result .bracket-viewer-team-name {
+  font-weight: 700;
+}
+
 .bracket-viewer-flag {
   flex-shrink: 0;
   border-radius: 2px;

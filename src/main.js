@@ -50,8 +50,11 @@ import {
 import {
   fetchLiveResults,
   getEffectiveResults,
+  getOfficialBracketContext,
   getResultsLabel,
   hasScoringResults,
+  hasKnockoutScoringResults,
+  countKnockoutResults,
   isLiveResultsEnabled,
 } from './lib/live-results.js';
 import { assetUrl } from './lib/base.js';
@@ -93,7 +96,9 @@ async function refreshLiveResults(force = false) {
   if (!force && age < refreshMs) return;
 
   const affectsUi =
-    activeTab === 'leaderboard' || activeTab === 'knockout';
+    activeTab === 'leaderboard' ||
+    activeTab === 'knockout' ||
+    activeTab === 'standings';
   if (affectsUi) render();
 
   try {
@@ -112,7 +117,11 @@ async function refreshLiveResults(force = false) {
 function startLiveResultsPolling() {
   stopLiveResultsPolling();
   if (!isLiveResultsEnabled()) return;
-  if (activeTab !== 'leaderboard' && activeTab !== 'knockout') {
+  if (
+    activeTab !== 'leaderboard' &&
+    activeTab !== 'knockout' &&
+    activeTab !== 'standings'
+  ) {
     return;
   }
 
@@ -239,7 +248,7 @@ function renderHome() {
   const groupClosed = isGroupStageClosed();
   const bracketWindow = GAME_CONFIG.windows.knockoutBracket;
   const knockoutTabHint =
-    'Browse any player\'s knockout picks on the <strong>Bracket</strong> tab.';
+    'Browse player picks on <strong>Bracket</strong> · live official results on <strong>Standings</strong>.';
 
   return `
     <section class="hero-banner">
@@ -372,7 +381,7 @@ function resolveDefaultBracketViewerKey(entries) {
   return entryViewerKey(withPicks ?? entries[0]);
 }
 
-function renderBracketViewerTeam(code, isPick, { compact = false } = {}) {
+function renderBracketViewerTeam(code, isHighlight, { compact = false, highlightClass = 'is-pick' } = {}) {
   if (!code) {
     return `<div class="bracket-viewer-team muted${compact ? ' bracket-viewer-team--compact' : ''}"><span>—</span></div>`;
   }
@@ -380,15 +389,20 @@ function renderBracketViewerTeam(code, isPick, { compact = false } = {}) {
   const name = getTeamName(code);
   const flagSize = compact ? 'width="18" height="13"' : 'width="24" height="18"';
   return `
-    <div class="bracket-viewer-team${isPick ? ' is-pick' : ''}${compact ? ' bracket-viewer-team--compact' : ''}" title="${name}">
+    <div class="bracket-viewer-team${isHighlight ? ` ${highlightClass}` : ''}${compact ? ' bracket-viewer-team--compact' : ''}" title="${name}">
       ${flag ? `<img class="bracket-viewer-flag" src="${flag}" alt="" ${flagSize} loading="lazy" />` : ''}
       <span class="bracket-viewer-team-name">${name}</span>
     </div>`;
 }
 
-function renderBracketViewerMatch(match, bracketContext, picks, { compact = false } = {}) {
+function renderBracketViewerMatch(
+  match,
+  bracketContext,
+  winnersByMatch,
+  { compact = false, highlightClass = 'is-pick' } = {}
+) {
   const { home, away } = resolveMatchParticipants(match, bracketContext);
-  const pick = picks[match.id] ?? '';
+  const winner = winnersByMatch[match.id] ?? '';
   const matchTag = match.label.replace('Match ', 'M');
 
   if (compact) {
@@ -396,8 +410,8 @@ function renderBracketViewerMatch(match, bracketContext, picks, { compact = fals
     <article class="bracket-viewer-match bracket-viewer-match--compact" title="${match.description}">
       <div class="bracket-viewer-match-label">${matchTag}</div>
       <div class="bracket-viewer-matchup">
-        ${renderBracketViewerTeam(home.code, pick === home.code, { compact: true })}
-        ${renderBracketViewerTeam(away.code, pick === away.code, { compact: true })}
+        ${renderBracketViewerTeam(home.code, winner === home.code, { compact: true, highlightClass })}
+        ${renderBracketViewerTeam(away.code, winner === away.code, { compact: true, highlightClass })}
       </div>
     </article>`;
   }
@@ -407,11 +421,44 @@ function renderBracketViewerMatch(match, bracketContext, picks, { compact = fals
       <div class="bracket-viewer-match-label">${match.label}</div>
       <p class="muted bracket-viewer-desc">${match.description}</p>
       <div class="bracket-viewer-matchup">
-        ${renderBracketViewerTeam(home.code, pick === home.code)}
+        ${renderBracketViewerTeam(home.code, winner === home.code, { highlightClass })}
         <span class="bracket-viewer-vs">vs</span>
-        ${renderBracketViewerTeam(away.code, pick === away.code)}
+        ${renderBracketViewerTeam(away.code, winner === away.code, { highlightClass })}
       </div>
     </article>`;
+}
+
+function renderBracketFunnel({
+  bracketContext,
+  winnersByMatch,
+  highlightClass = 'is-pick',
+  ariaLabel = 'Knockout bracket funnel',
+}) {
+  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
+  return `
+      <div class="bracket-funnel" aria-label="${ariaLabel}">
+        ${rounds
+          .map((round) => {
+            const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
+            const connectorPct = BRACKET_FUNNEL_CONNECTOR[round];
+            return `
+          ${connectorPct != null ? `<div class="bracket-funnel-connector" style="--connector-width: ${connectorPct}%" aria-hidden="true"></div>` : ''}
+          <section class="bracket-viewer-round" data-round="${round}">
+            <h3 class="bracket-viewer-round-title">${ROUND_LABELS[round]}</h3>
+            <div class="bracket-viewer-round-matches">
+              ${matches
+                .map((match) =>
+                  renderBracketViewerMatch(match, bracketContext, winnersByMatch, {
+                    compact: true,
+                    highlightClass,
+                  })
+                )
+                .join('')}
+            </div>
+          </section>`;
+          })
+          .join('')}
+      </div>`;
 }
 
 const BRACKET_FUNNEL_CONNECTOR = {
@@ -461,7 +508,6 @@ function renderKnockout() {
 
   const knockout = applyLockedKnockoutPicks(selected.knockout ?? {});
   const bracketContext = getEntryBracketContext(selected, effectiveResults);
-  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
   const hasPicks = countKnockoutPicks(knockout) > 0;
   const finalScore = formatFinalScorePick(selected.finalScore, knockout.final);
 
@@ -494,28 +540,49 @@ function renderKnockout() {
           : ''
       }
 
-      <div class="bracket-funnel" aria-label="Knockout bracket funnel">
-        ${rounds
-          .map((round) => {
-            const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
-            const connectorPct = BRACKET_FUNNEL_CONNECTOR[round];
-            return `
-          ${connectorPct != null ? `<div class="bracket-funnel-connector" style="--connector-width: ${connectorPct}%" aria-hidden="true"></div>` : ''}
-          <section class="bracket-viewer-round" data-round="${round}">
-            <h3 class="bracket-viewer-round-title">${ROUND_LABELS[round]}</h3>
-            <div class="bracket-viewer-round-matches">
-              ${matches
-                .map((match) =>
-                  renderBracketViewerMatch(match, bracketContext, knockout, {
-                    compact: true,
-                  })
-                )
-                .join('')}
-            </div>
-          </section>`;
-          })
-          .join('')}
-      </div>
+      ${renderBracketFunnel({
+        bracketContext,
+        winnersByMatch: knockout,
+        highlightClass: 'is-pick',
+        ariaLabel: 'Player knockout bracket funnel',
+      })}
+    </section>`;
+}
+
+function renderStandings() {
+  const results = getEffectiveResults(state);
+  const bracketContext = getOfficialBracketContext(results);
+  const winners = results.knockout ?? {};
+  const koFinished = countKnockoutResults(winners);
+  const resultsLabel = getResultsLabel(results, state.liveResults);
+  const finalScore = formatFinalScorePick(results.finalScore, winners.final);
+
+  return `
+    <section class="panel knockout-viewer-panel">
+      <h2>Knockout standings</h2>
+      <p class="muted">Official knockout bracket — results flow through each round as games finish. Green highlight = match winner.</p>
+      ${
+        isLiveResultsEnabled()
+          ? `<p class="muted">${resultsLabel}</p>`
+          : '<p class="muted">Enable live results in config or enter knockout winners in Admin.</p>'
+      }
+      ${
+        koFinished
+          ? `<p class="muted">${koFinished} of ${KNOCKOUT_MATCHES.length} knockout matches decided</p>`
+          : '<p class="callout warning" style="margin-top:1rem"><strong>No knockout results yet.</strong> Results will appear here as matches finish.</p>'
+      }
+      ${
+        finalScore
+          ? `<p class="muted" style="margin-top:0.75rem">Final result: <strong>${finalScore}</strong></p>`
+          : ''
+      }
+
+      ${renderBracketFunnel({
+        bracketContext,
+        winnersByMatch: winners,
+        highlightClass: 'is-result',
+        ariaLabel: 'Official knockout results funnel',
+      })}
     </section>`;
 }
 
@@ -596,7 +663,8 @@ function renderLeaderboard() {
 
   const ranked = rankEntries(entries, results);
   const maxKnockout = getMaxKnockoutPoints();
-  const hasKnockoutResults = Object.values(results.knockout ?? {}).some(Boolean);
+  const koFinished = countKnockoutResults(results.knockout);
+  const hasKnockoutResults = hasKnockoutScoringResults(results);
 
   return `
     <section class="panel">
@@ -608,7 +676,7 @@ function renderLeaderboard() {
       </div>
       ${
         isLiveResultsEnabled()
-          ? `<p class="muted">Group stage final · scores locked through 29 Jun 2026${resultsLabel ? ` · ${resultsLabel}` : ''}</p>`
+          ? `<p class="muted">${resultsLabel || 'Group stage final · scores locked through 29 Jun 2026'}</p>`
           : !hasResults
             ? '<p class="muted">Enter actual group results in Admin to calculate scores.</p>'
             : '<p class="muted">Group stage final · scores locked through 29 Jun 2026</p>'
@@ -619,9 +687,11 @@ function renderLeaderboard() {
           : `<p class="muted">${entries.length} player${entries.length === 1 ? '' : 's'} registered</p>`
       }
       ${
-        !hasKnockoutResults
-          ? '<p class="muted">Knockout points update as later-round results are entered in Admin.</p>'
-          : ''
+        isLiveResultsEnabled() && hasKnockoutResults
+          ? `<p class="muted">Knockout scoring live — ${koFinished}/${KNOCKOUT_MATCHES.length} results in · includes hidden +4 pt baseline for Matches 73–76</p>`
+          : !hasKnockoutResults
+            ? '<p class="muted">Knockout points update as results come in from the live API.</p>'
+            : ''
       }
       <table class="score-table">
         <thead>
@@ -804,6 +874,8 @@ function renderTabContent() {
   switch (activeTab) {
     case 'knockout':
       return renderKnockout();
+    case 'standings':
+      return renderStandings();
     case 'leaderboard':
       return renderLeaderboard();
     case 'admin':
@@ -821,6 +893,7 @@ function render() {
   const tabs = [
     { id: 'home', label: 'Home' },
     { id: 'knockout', label: 'Bracket' },
+    { id: 'standings', label: 'Standings' },
     { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'admin', label: 'Admin' },
   ];
@@ -869,7 +942,11 @@ function render() {
   `;
 
   bindEvents();
-  if (activeTab === 'leaderboard' || activeTab === 'knockout') {
+  if (
+    activeTab === 'leaderboard' ||
+    activeTab === 'knockout' ||
+    activeTab === 'standings'
+  ) {
     startLiveResultsPolling();
   } else {
     stopLiveResultsPolling();
@@ -885,7 +962,7 @@ function bindEvents() {
         refreshLiveResults(true);
         refreshLeaderboard(true);
       }
-      if (activeTab === 'knockout') {
+      if (activeTab === 'knockout' || activeTab === 'standings') {
         refreshLiveResults(true);
       }
     });
