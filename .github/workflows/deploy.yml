@@ -15,7 +15,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  # Avoid "Deployment failed, try again later" when push + cron overlap (actions/deploy-pages#418).
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -54,3 +55,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Retry deploy (transient Pages backend failure)
+        id: deployment-retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+
+      - name: Verify deployment succeeded
+        if: steps.deployment.outcome == 'failure' && steps.deployment-retry.outcome == 'failure'
+        run: |
+          echo "GitHub Pages deploy failed after retry. See actions/deploy-pages#418."
+          exit 1
