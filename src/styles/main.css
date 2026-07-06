@@ -66,43 +66,6 @@ body {
   box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
 }
 
-.canada-banner {
-  background: linear-gradient(
-    90deg,
-    #c8102e 0%,
-    #d41830 18%,
-    #ffffff 50%,
-    #d41830 82%,
-    #c8102e 100%
-  );
-  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
-  padding: 0.55rem 1rem;
-  text-align: center;
-}
-
-.canada-banner-text {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #c8102e;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
-}
-
-.canada-banner-flag {
-  flex-shrink: 0;
-  width: 28px;
-  height: 21px;
-  object-fit: cover;
-  border-radius: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-}
-
 .site-topbar {
   background: rgba(14, 30, 52, 0.94);
   backdrop-filter: blur(12px);
