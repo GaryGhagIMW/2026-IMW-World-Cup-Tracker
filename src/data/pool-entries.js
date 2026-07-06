@@ -592,7 +592,7 @@ export const POOL_ENTRIES = [  poolEntry(
       K: ['POR', 'COL', 'COD', 'UZB'],
       L: ['ENG', 'CRO', 'GHA', 'PAN'],
     },
-    '2026-06-05T03:20:22.071Z',
+    '2026-07-06T16:55:00.000Z',
         {
       'final': 'ARG',
       'qf-1': 'FRA',

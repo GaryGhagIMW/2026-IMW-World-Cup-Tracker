@@ -102,6 +102,38 @@ export const GAME_CONFIG = {
     'r32-3': 'MAR',
     /** Match 76 — Brazil 2-1 Japan (Jun 29, 2026) */
     'r32-4': 'BRA',
+    /** Match 77 — France 2-0 Sweden (Jun 30, 2026) */
+    'r32-5': 'FRA',
+    /** Match 78 — Ivory Coast 0-2 Norway (Jun 30, 2026) */
+    'r32-6': 'NOR',
+    /** Match 79 — Mexico 2-0 Ecuador (Jun 30, 2026) */
+    'r32-7': 'MEX',
+    /** Match 80 — England 2-0 DR Congo (Jul 1, 2026) */
+    'r32-8': 'ENG',
+    /** Match 81 — USA 2-1 Bosnia (Jul 1, 2026) */
+    'r32-9': 'USA',
+    /** Match 82 — Belgium 2-0 Egypt (Jul 1, 2026) */
+    'r32-10': 'BEL',
+    /** Match 83 — Portugal 2-1 Colombia (Jul 2, 2026) */
+    'r32-11': 'POR',
+    /** Match 84 — Spain 2-1 Algeria (Jul 2, 2026) */
+    'r32-12': 'ESP',
+    /** Match 85 — Australia 0-1 Egypt (Jul 3, 2026) — EGY advanced */
+    'r32-13': 'EGY',
+    /** Match 86 — Switzerland 2-1 Algeria (Jul 3, 2026) */
+    'r32-14': 'SUI',
+    /** Match 87 — Argentina 2-0 Venezuela (Jul 4, 2026) */
+    'r32-15': 'ARG',
+    /** Match 88 — Colombia 1-0 Ghana (Jul 4, 2026) */
+    'r32-16': 'COL',
+    /** Match 89 — France 2-0 Mexico (Jul 4, 2026) */
+    'r16-1': 'FRA',
+    /** Match 90 — Canada 0-2 Morocco (Jul 4, 2026) */
+    'r16-2': 'MAR',
+    /** Match 91 — Brazil 2-1 Norway (Jul 5, 2026) */
+    'r16-3': 'NOR',
+    /** Match 92 — England 2-0 Switzerland (Jul 5, 2026) */
+    'r16-4': 'ENG',
   },
 
   /**

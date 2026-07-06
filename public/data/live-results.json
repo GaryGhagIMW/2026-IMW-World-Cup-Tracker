@@ -1,25 +1,19 @@
 {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-06-29T15:25:47.791Z",
+  "updatedAt": "2026-07-06T16:56:14.300Z",
   "groupsWithMatches": 12,
   "groups": {
-    "A": [
-      "MEX",
-      "RSA",
-      "KOR",
-      "CZE"
+    "H": [
+      "ESP",
+      "CPV",
+      "URU",
+      "KSA"
     ],
-    "B": [
-      "SUI",
-      "CAN",
-      "BIH",
-      "QAT"
-    ],
-    "C": [
-      "BRA",
-      "MAR",
-      "SCO",
-      "HAI"
+    "I": [
+      "FRA",
+      "NOR",
+      "SEN",
+      "IRQ"
     ],
     "D": [
       "USA",
@@ -45,23 +39,23 @@
       "IRN",
       "NZL"
     ],
-    "H": [
-      "ESP",
-      "CPV",
-      "URU",
-      "KSA"
+    "A": [
+      "MEX",
+      "RSA",
+      "KOR",
+      "CZE"
     ],
-    "I": [
-      "FRA",
-      "NOR",
-      "SEN",
-      "IRQ"
+    "B": [
+      "SUI",
+      "CAN",
+      "BIH",
+      "QAT"
     ],
-    "J": [
-      "ARG",
-      "AUT",
-      "ALG",
-      "JOR"
+    "L": [
+      "ENG",
+      "CRO",
+      "GHA",
+      "PAN"
     ],
     "K": [
       "COL",
@@ -69,40 +63,36 @@
       "COD",
       "UZB"
     ],
-    "L": [
-      "ENG",
-      "CRO",
-      "GHA",
-      "PAN"
+    "C": [
+      "BRA",
+      "MAR",
+      "SCO",
+      "HAI"
+    ],
+    "J": [
+      "ARG",
+      "AUT",
+      "ALG",
+      "JOR"
     ]
   },
   "meta": {
-    "A": {
+    "H": {
       "positions": [
-        "MEX",
-        "RSA",
-        "KOR",
-        "CZE"
+        "ESP",
+        "CPV",
+        "URU",
+        "KSA"
       ],
       "matchesPlayed": 3,
       "live": true
     },
-    "B": {
+    "I": {
       "positions": [
-        "SUI",
-        "CAN",
-        "BIH",
-        "QAT"
-      ],
-      "matchesPlayed": 3,
-      "live": true
-    },
-    "C": {
-      "positions": [
-        "BRA",
-        "MAR",
-        "SCO",
-        "HAI"
+        "FRA",
+        "NOR",
+        "SEN",
+        "IRQ"
       ],
       "matchesPlayed": 3,
       "live": true
@@ -147,32 +137,32 @@
       "matchesPlayed": 3,
       "live": true
     },
-    "H": {
+    "A": {
       "positions": [
-        "ESP",
-        "CPV",
-        "URU",
-        "KSA"
+        "MEX",
+        "RSA",
+        "KOR",
+        "CZE"
       ],
       "matchesPlayed": 3,
       "live": true
     },
-    "I": {
+    "B": {
       "positions": [
-        "FRA",
-        "NOR",
-        "SEN",
-        "IRQ"
+        "SUI",
+        "CAN",
+        "BIH",
+        "QAT"
       ],
       "matchesPlayed": 3,
       "live": true
     },
-    "J": {
+    "L": {
       "positions": [
-        "ARG",
-        "AUT",
-        "ALG",
-        "JOR"
+        "ENG",
+        "CRO",
+        "GHA",
+        "PAN"
       ],
       "matchesPlayed": 3,
       "live": true
@@ -187,189 +177,141 @@
       "matchesPlayed": 3,
       "live": true
     },
-    "L": {
+    "C": {
       "positions": [
-        "ENG",
-        "CRO",
-        "GHA",
-        "PAN"
+        "BRA",
+        "MAR",
+        "SCO",
+        "HAI"
+      ],
+      "matchesPlayed": 3,
+      "live": true
+    },
+    "J": {
+      "positions": [
+        "ARG",
+        "AUT",
+        "ALG",
+        "JOR"
       ],
       "matchesPlayed": 3,
       "live": true
     }
   },
   "standings": {
-    "A": [
+    "H": [
       {
         "rank": 1,
-        "code": "MEX",
-        "name": "Mexico",
-        "flag": "https://flagcdn.com/w80/mx.png",
+        "code": "ESP",
+        "name": "Spain",
+        "flag": "https://flagcdn.com/w80/es.png",
+        "mp": 3,
+        "w": 2,
+        "d": 1,
+        "l": 0,
+        "gf": 5,
+        "ga": 0,
+        "gd": 5,
+        "pts": 7
+      },
+      {
+        "rank": 2,
+        "code": "CPV",
+        "name": "Cape Verde",
+        "flag": "https://flagcdn.com/w80/cv.png",
+        "mp": 3,
+        "w": 0,
+        "d": 3,
+        "l": 0,
+        "gf": 2,
+        "ga": 2,
+        "gd": 0,
+        "pts": 3
+      },
+      {
+        "rank": 3,
+        "code": "URU",
+        "name": "Uruguay",
+        "flag": "https://flagcdn.com/w80/uy.png",
+        "mp": 3,
+        "w": 0,
+        "d": 2,
+        "l": 1,
+        "gf": 3,
+        "ga": 4,
+        "gd": -1,
+        "pts": 2
+      },
+      {
+        "rank": 4,
+        "code": "KSA",
+        "name": "Saudi Arabia",
+        "flag": "https://flagcdn.com/w80/sa.png",
+        "mp": 3,
+        "w": 0,
+        "d": 2,
+        "l": 1,
+        "gf": 1,
+        "ga": 5,
+        "gd": -4,
+        "pts": 2
+      }
+    ],
+    "I": [
+      {
+        "rank": 1,
+        "code": "FRA",
+        "name": "France",
+        "flag": "https://flagcdn.com/w80/fr.png",
         "mp": 3,
         "w": 3,
         "d": 0,
         "l": 0,
-        "gf": 6,
-        "ga": 0,
-        "gd": 6,
+        "gf": 10,
+        "ga": 2,
+        "gd": 8,
         "pts": 9
       },
       {
         "rank": 2,
-        "code": "RSA",
-        "name": "South Africa",
-        "flag": "https://flagcdn.com/w80/za.png",
-        "mp": 3,
-        "w": 1,
-        "d": 1,
-        "l": 1,
-        "gf": 2,
-        "ga": 3,
-        "gd": -1,
-        "pts": 4
-      },
-      {
-        "rank": 3,
-        "code": "KOR",
-        "name": "South Korea",
-        "flag": "https://flagcdn.com/w80/kr.png",
-        "mp": 3,
-        "w": 1,
-        "d": 0,
-        "l": 2,
-        "gf": 2,
-        "ga": 3,
-        "gd": -1,
-        "pts": 3
-      },
-      {
-        "rank": 4,
-        "code": "CZE",
-        "name": "Czech Republic",
-        "flag": "https://flagcdn.com/w80/cz.png",
-        "mp": 3,
-        "w": 0,
-        "d": 1,
-        "l": 2,
-        "gf": 2,
-        "ga": 6,
-        "gd": -4,
-        "pts": 1
-      }
-    ],
-    "B": [
-      {
-        "rank": 1,
-        "code": "SUI",
-        "name": "Switzerland",
-        "flag": "https://flagcdn.com/w80/ch.png",
+        "code": "NOR",
+        "name": "Norway",
+        "flag": "https://flagcdn.com/w80/no.png",
         "mp": 3,
         "w": 2,
-        "d": 1,
-        "l": 0,
-        "gf": 7,
-        "ga": 3,
-        "gd": 4,
-        "pts": 7
-      },
-      {
-        "rank": 2,
-        "code": "CAN",
-        "name": "Canada",
-        "flag": "https://flagcdn.com/w80/ca.png",
-        "mp": 3,
-        "w": 1,
-        "d": 1,
+        "d": 0,
         "l": 1,
         "gf": 8,
-        "ga": 3,
-        "gd": 5,
-        "pts": 4
+        "ga": 7,
+        "gd": 1,
+        "pts": 6
       },
       {
         "rank": 3,
-        "code": "BIH",
-        "name": "Bosnia and Herzegovina",
-        "flag": "https://flagcdn.com/w80/ba.png",
-        "mp": 3,
-        "w": 1,
-        "d": 1,
-        "l": 1,
-        "gf": 5,
-        "ga": 6,
-        "gd": -1,
-        "pts": 4
-      },
-      {
-        "rank": 4,
-        "code": "QAT",
-        "name": "Qatar",
-        "flag": "https://flagcdn.com/w80/qa.png",
-        "mp": 3,
-        "w": 0,
-        "d": 1,
-        "l": 2,
-        "gf": 2,
-        "ga": 10,
-        "gd": -8,
-        "pts": 1
-      }
-    ],
-    "C": [
-      {
-        "rank": 1,
-        "code": "BRA",
-        "name": "Brazil",
-        "flag": "https://flagcdn.com/w80/br.png",
-        "mp": 3,
-        "w": 2,
-        "d": 1,
-        "l": 0,
-        "gf": 7,
-        "ga": 1,
-        "gd": 6,
-        "pts": 7
-      },
-      {
-        "rank": 2,
-        "code": "MAR",
-        "name": "Morocco",
-        "flag": "https://flagcdn.com/w80/ma.png",
-        "mp": 3,
-        "w": 2,
-        "d": 1,
-        "l": 0,
-        "gf": 6,
-        "ga": 3,
-        "gd": 3,
-        "pts": 7
-      },
-      {
-        "rank": 3,
-        "code": "SCO",
-        "name": "Scotland",
-        "flag": "https://flagcdn.com/w80/gb-sct.png",
+        "code": "SEN",
+        "name": "Senegal",
+        "flag": "https://flagcdn.com/w80/sn.png",
         "mp": 3,
         "w": 1,
         "d": 0,
         "l": 2,
-        "gf": 1,
-        "ga": 4,
-        "gd": -3,
+        "gf": 8,
+        "ga": 6,
+        "gd": 2,
         "pts": 3
       },
       {
         "rank": 4,
-        "code": "HAI",
-        "name": "Haiti",
-        "flag": "https://flagcdn.com/w80/ht.png",
+        "code": "IRQ",
+        "name": "Iraq",
+        "flag": "https://flagcdn.com/w80/iq.png",
         "mp": 3,
         "w": 0,
         "d": 0,
         "l": 3,
-        "gf": 2,
-        "ga": 8,
-        "gd": -6,
+        "gf": 1,
+        "ga": 12,
+        "gd": -11,
         "pts": 0
       }
     ],
@@ -605,177 +547,177 @@
         "pts": 1
       }
     ],
-    "H": [
+    "A": [
       {
         "rank": 1,
-        "code": "ESP",
-        "name": "Spain",
-        "flag": "https://flagcdn.com/w80/es.png",
-        "mp": 3,
-        "w": 2,
-        "d": 1,
-        "l": 0,
-        "gf": 5,
-        "ga": 0,
-        "gd": 5,
-        "pts": 7
-      },
-      {
-        "rank": 2,
-        "code": "CPV",
-        "name": "Cape Verde",
-        "flag": "https://flagcdn.com/w80/cv.png",
-        "mp": 3,
-        "w": 0,
-        "d": 3,
-        "l": 0,
-        "gf": 2,
-        "ga": 2,
-        "gd": 0,
-        "pts": 3
-      },
-      {
-        "rank": 3,
-        "code": "URU",
-        "name": "Uruguay",
-        "flag": "https://flagcdn.com/w80/uy.png",
-        "mp": 3,
-        "w": 0,
-        "d": 2,
-        "l": 1,
-        "gf": 3,
-        "ga": 4,
-        "gd": -1,
-        "pts": 2
-      },
-      {
-        "rank": 4,
-        "code": "KSA",
-        "name": "Saudi Arabia",
-        "flag": "https://flagcdn.com/w80/sa.png",
-        "mp": 3,
-        "w": 0,
-        "d": 2,
-        "l": 1,
-        "gf": 1,
-        "ga": 5,
-        "gd": -4,
-        "pts": 2
-      }
-    ],
-    "I": [
-      {
-        "rank": 1,
-        "code": "FRA",
-        "name": "France",
-        "flag": "https://flagcdn.com/w80/fr.png",
+        "code": "MEX",
+        "name": "Mexico",
+        "flag": "https://flagcdn.com/w80/mx.png",
         "mp": 3,
         "w": 3,
         "d": 0,
         "l": 0,
-        "gf": 10,
-        "ga": 2,
-        "gd": 8,
+        "gf": 6,
+        "ga": 0,
+        "gd": 6,
         "pts": 9
       },
       {
         "rank": 2,
-        "code": "NOR",
-        "name": "Norway",
-        "flag": "https://flagcdn.com/w80/no.png",
+        "code": "RSA",
+        "name": "South Africa",
+        "flag": "https://flagcdn.com/w80/za.png",
         "mp": 3,
-        "w": 2,
-        "d": 0,
+        "w": 1,
+        "d": 1,
         "l": 1,
-        "gf": 8,
-        "ga": 7,
-        "gd": 1,
-        "pts": 6
+        "gf": 2,
+        "ga": 3,
+        "gd": -1,
+        "pts": 4
       },
       {
         "rank": 3,
-        "code": "SEN",
-        "name": "Senegal",
-        "flag": "https://flagcdn.com/w80/sn.png",
+        "code": "KOR",
+        "name": "South Korea",
+        "flag": "https://flagcdn.com/w80/kr.png",
         "mp": 3,
         "w": 1,
         "d": 0,
         "l": 2,
-        "gf": 8,
-        "ga": 6,
-        "gd": 2,
+        "gf": 2,
+        "ga": 3,
+        "gd": -1,
         "pts": 3
       },
       {
         "rank": 4,
-        "code": "IRQ",
-        "name": "Iraq",
-        "flag": "https://flagcdn.com/w80/iq.png",
+        "code": "CZE",
+        "name": "Czech Republic",
+        "flag": "https://flagcdn.com/w80/cz.png",
         "mp": 3,
         "w": 0,
-        "d": 0,
-        "l": 3,
-        "gf": 1,
-        "ga": 12,
-        "gd": -11,
-        "pts": 0
+        "d": 1,
+        "l": 2,
+        "gf": 2,
+        "ga": 6,
+        "gd": -4,
+        "pts": 1
       }
     ],
-    "J": [
+    "B": [
       {
         "rank": 1,
-        "code": "ARG",
-        "name": "Argentina",
-        "flag": "https://flagcdn.com/w80/ar.png",
+        "code": "SUI",
+        "name": "Switzerland",
+        "flag": "https://flagcdn.com/w80/ch.png",
         "mp": 3,
-        "w": 3,
-        "d": 0,
+        "w": 2,
+        "d": 1,
         "l": 0,
-        "gf": 8,
-        "ga": 1,
-        "gd": 7,
-        "pts": 9
+        "gf": 7,
+        "ga": 3,
+        "gd": 4,
+        "pts": 7
       },
       {
         "rank": 2,
-        "code": "AUT",
-        "name": "Austria",
-        "flag": "https://flagcdn.com/w80/at.png",
+        "code": "CAN",
+        "name": "Canada",
+        "flag": "https://flagcdn.com/w80/ca.png",
         "mp": 3,
         "w": 1,
         "d": 1,
         "l": 1,
-        "gf": 6,
-        "ga": 6,
-        "gd": 0,
+        "gf": 8,
+        "ga": 3,
+        "gd": 5,
         "pts": 4
       },
       {
         "rank": 3,
-        "code": "ALG",
-        "name": "Algeria",
-        "flag": "https://flagcdn.com/w80/dz.png",
+        "code": "BIH",
+        "name": "Bosnia and Herzegovina",
+        "flag": "https://flagcdn.com/w80/ba.png",
         "mp": 3,
         "w": 1,
         "d": 1,
         "l": 1,
         "gf": 5,
-        "ga": 7,
-        "gd": -2,
+        "ga": 6,
+        "gd": -1,
         "pts": 4
       },
       {
         "rank": 4,
-        "code": "JOR",
-        "name": "Jordan",
-        "flag": "https://flagcdn.com/w80/jo.png",
+        "code": "QAT",
+        "name": "Qatar",
+        "flag": "https://flagcdn.com/w80/qa.png",
+        "mp": 3,
+        "w": 0,
+        "d": 1,
+        "l": 2,
+        "gf": 2,
+        "ga": 10,
+        "gd": -8,
+        "pts": 1
+      }
+    ],
+    "L": [
+      {
+        "rank": 1,
+        "code": "ENG",
+        "name": "England",
+        "flag": "https://flagcdn.com/w80/gb-eng.png",
+        "mp": 3,
+        "w": 2,
+        "d": 1,
+        "l": 0,
+        "gf": 6,
+        "ga": 2,
+        "gd": 4,
+        "pts": 7
+      },
+      {
+        "rank": 2,
+        "code": "CRO",
+        "name": "Croatia",
+        "flag": "https://flagcdn.com/w80/hr.png",
+        "mp": 3,
+        "w": 2,
+        "d": 0,
+        "l": 1,
+        "gf": 5,
+        "ga": 5,
+        "gd": 0,
+        "pts": 6
+      },
+      {
+        "rank": 3,
+        "code": "GHA",
+        "name": "Ghana",
+        "flag": "https://flagcdn.com/w80/gh.png",
+        "mp": 3,
+        "w": 1,
+        "d": 1,
+        "l": 1,
+        "gf": 2,
+        "ga": 2,
+        "gd": 0,
+        "pts": 4
+      },
+      {
+        "rank": 4,
+        "code": "PAN",
+        "name": "Panama",
+        "flag": "https://flagcdn.com/w80/pa.png",
         "mp": 3,
         "w": 0,
         "d": 0,
         "l": 3,
-        "gf": 3,
-        "ga": 8,
-        "gd": -5,
+        "gf": 0,
+        "ga": 4,
+        "gd": -4,
         "pts": 0
       }
     ],
@@ -837,63 +779,159 @@
         "pts": 0
       }
     ],
-    "L": [
+    "C": [
       {
         "rank": 1,
-        "code": "ENG",
-        "name": "England",
-        "flag": "https://flagcdn.com/w80/gb-eng.png",
+        "code": "BRA",
+        "name": "Brazil",
+        "flag": "https://flagcdn.com/w80/br.png",
+        "mp": 3,
+        "w": 2,
+        "d": 1,
+        "l": 0,
+        "gf": 7,
+        "ga": 1,
+        "gd": 6,
+        "pts": 7
+      },
+      {
+        "rank": 2,
+        "code": "MAR",
+        "name": "Morocco",
+        "flag": "https://flagcdn.com/w80/ma.png",
         "mp": 3,
         "w": 2,
         "d": 1,
         "l": 0,
         "gf": 6,
-        "ga": 2,
-        "gd": 4,
+        "ga": 3,
+        "gd": 3,
         "pts": 7
       },
       {
-        "rank": 2,
-        "code": "CRO",
-        "name": "Croatia",
-        "flag": "https://flagcdn.com/w80/hr.png",
-        "mp": 3,
-        "w": 2,
-        "d": 0,
-        "l": 1,
-        "gf": 5,
-        "ga": 5,
-        "gd": 0,
-        "pts": 6
-      },
-      {
         "rank": 3,
-        "code": "GHA",
-        "name": "Ghana",
-        "flag": "https://flagcdn.com/w80/gh.png",
+        "code": "SCO",
+        "name": "Scotland",
+        "flag": "https://flagcdn.com/w80/gb-sct.png",
         "mp": 3,
         "w": 1,
-        "d": 1,
-        "l": 1,
-        "gf": 2,
-        "ga": 2,
-        "gd": 0,
-        "pts": 4
+        "d": 0,
+        "l": 2,
+        "gf": 1,
+        "ga": 4,
+        "gd": -3,
+        "pts": 3
       },
       {
         "rank": 4,
-        "code": "PAN",
-        "name": "Panama",
-        "flag": "https://flagcdn.com/w80/pa.png",
+        "code": "HAI",
+        "name": "Haiti",
+        "flag": "https://flagcdn.com/w80/ht.png",
         "mp": 3,
         "w": 0,
         "d": 0,
         "l": 3,
-        "gf": 0,
-        "ga": 4,
-        "gd": -4,
+        "gf": 2,
+        "ga": 8,
+        "gd": -6,
+        "pts": 0
+      }
+    ],
+    "J": [
+      {
+        "rank": 1,
+        "code": "ARG",
+        "name": "Argentina",
+        "flag": "https://flagcdn.com/w80/ar.png",
+        "mp": 3,
+        "w": 3,
+        "d": 0,
+        "l": 0,
+        "gf": 8,
+        "ga": 1,
+        "gd": 7,
+        "pts": 9
+      },
+      {
+        "rank": 2,
+        "code": "AUT",
+        "name": "Austria",
+        "flag": "https://flagcdn.com/w80/at.png",
+        "mp": 3,
+        "w": 1,
+        "d": 1,
+        "l": 1,
+        "gf": 6,
+        "ga": 6,
+        "gd": 0,
+        "pts": 4
+      },
+      {
+        "rank": 3,
+        "code": "ALG",
+        "name": "Algeria",
+        "flag": "https://flagcdn.com/w80/dz.png",
+        "mp": 3,
+        "w": 1,
+        "d": 1,
+        "l": 1,
+        "gf": 5,
+        "ga": 7,
+        "gd": -2,
+        "pts": 4
+      },
+      {
+        "rank": 4,
+        "code": "JOR",
+        "name": "Jordan",
+        "flag": "https://flagcdn.com/w80/jo.png",
+        "mp": 3,
+        "w": 0,
+        "d": 0,
+        "l": 3,
+        "gf": 3,
+        "ga": 8,
+        "gd": -5,
         "pts": 0
       }
     ]
-  }
+  },
+  "knockout": {
+    "r32-1": "CAN",
+    "r32-2": "PAR",
+    "r32-3": "MAR",
+    "r32-4": "BRA",
+    "r32-5": "FRA",
+    "r32-6": "NOR",
+    "r32-7": "MEX",
+    "r32-8": "ENG",
+    "r32-9": "USA",
+    "r32-10": "BEL",
+    "r32-11": "POR",
+    "r32-12": "ESP",
+    "r32-13": "EGY",
+    "r32-14": "SUI",
+    "r32-15": "ARG",
+    "r32-16": "COL",
+    "r16-1": "FRA",
+    "r16-2": "MAR",
+    "r16-3": "NOR",
+    "r16-4": "ENG",
+    "r16-5": "",
+    "r16-6": "",
+    "r16-7": "",
+    "r16-8": "",
+    "qf-1": "",
+    "qf-2": "",
+    "qf-3": "",
+    "qf-4": "",
+    "sf-1": "",
+    "sf-2": "",
+    "final": ""
+  },
+  "finalScore": {
+    "winnerGoals": null,
+    "loserGoals": null
+  },
+  "knockoutMatchesFinished": 20
 }
