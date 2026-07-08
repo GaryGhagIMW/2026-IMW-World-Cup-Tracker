@@ -11,6 +11,7 @@ import {
 } from './scoring.js';
 import { assetUrl } from './base.js';
 import { fetchWorldCupStandings } from './worldcup-api.js';
+import { BUNDLED_LIVE_RESULTS } from '../data/bundled-live-results.js';
 
 const LIVE_RESULTS_PATH = 'data/live-results.json';
 
@@ -211,12 +212,10 @@ export function getEffectiveResults(state) {
   };
 
   if (!isLiveResultsEnabled()) {
-    return mergeResults(null, manual);
+    return mergeResults(BUNDLED_LIVE_RESULTS, manual);
   }
 
-  if (!state.liveResults) {
-    return mergeResults(null, manual);
-  }
+  const livePayload = state.liveResults ?? BUNDLED_LIVE_RESULTS;
 
   // Manual admin overrides are local to one browser — only the organizer should
   // see them while testing. Everyone else uses the same live feed for scoring.
@@ -228,7 +227,7 @@ export function getEffectiveResults(state) {
         finalScore: createEmptyFinalScore(),
       };
 
-  return mergeResults(state.liveResults, manualForMerge);
+  return mergeResults(livePayload, manualForMerge);
 }
 
 /** Bracket context driven by official knockout results (Standings tab). */

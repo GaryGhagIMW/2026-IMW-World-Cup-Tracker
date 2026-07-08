@@ -1,6 +1,7 @@
 import { GAME_CONFIG } from '../data/config.js';
 import { GROUPS, getTeamName } from '../data/groups.js';
 import { getFinalizedGroupPoints } from '../data/group-stage-scores.js';
+import { getFinalizedKnockoutPoints } from '../data/knockout-stage-scores.js';
 import {
   KNOCKOUT_MATCHES,
 } from '../data/knockout.js';
@@ -200,7 +201,19 @@ export function scoreEntry(entry, results) {
     finalizedGroupPoints != null
       ? { points: finalizedGroupPoints, breakdown: [] }
       : scoreGroupPredictions(entry.groups, results.groups);
-  const knockout = scoreKnockoutPredictions(entry.knockout, results.knockout);
+  const finalizedKnockoutPoints = getFinalizedKnockoutPoints(entry);
+  const knockoutWeights = GAME_CONFIG.scoring.knockout;
+  const knockout =
+    finalizedKnockoutPoints != null
+      ? {
+          points: finalizedKnockoutPoints,
+          maxPoints: KNOCKOUT_MATCHES.reduce(
+            (sum, m) => sum + knockoutWeights[m.round],
+            0
+          ),
+          breakdown: [],
+        }
+      : scoreKnockoutPredictions(entry.knockout, results.knockout);
   const finalScore = scoreFinalPrediction(
     entry.finalScore,
     results.finalScore

@@ -34,6 +34,9 @@ jobs:
         run: node scripts/fetch-live-results.mjs
         # Script never fails the job — keeps last-known standings when worldcup26.ir is down.
 
+      - name: Generate leaderboard knockout scores
+        run: node scripts/generate-knockout-scores.mjs
+
       - name: Install dependencies
         run: npm install
 

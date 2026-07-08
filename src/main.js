@@ -614,35 +614,14 @@ function renderPlayerGroupPicks(groups) {
     </div>`;
 }
 
-function renderPlayerKnockoutPicks(knockout, bracketContext) {
-  const rounds = ['r32', 'r16', 'qf', 'sf', 'final'];
-  return `
-    <div class="player-knockout-picks">
-      ${rounds
-        .map((round) => {
-          const matches = KNOCKOUT_MATCHES.filter((m) => m.round === round);
-          return `
-        <section class="player-knockout-round">
-          <h4>${ROUND_LABELS[round]}</h4>
-          <ul class="player-picks-list">
-            ${matches
-              .map((match) => {
-                const pick = knockout?.[match.id];
-                return `<li><span class="player-picks-pos">${match.label.replace('Match ', 'M')}</span><span class="player-picks-team">${pick ? getTeamName(pick) : '—'}</span></li>`;
-              })
-              .join('')}
-          </ul>
-        </section>`;
-        })
-        .join('')}
-    </div>`;
-}
-
 function renderLeaderboard() {
   const results = getEffectiveResults(state);
   const entries = getLeaderboardEntries(state);
   const hasResults = hasScoringResults(results);
-  const resultsLabel = getResultsLabel(results, state.liveResults);
+  const resultsLabel = getResultsLabel(
+    results,
+    state.liveResults ?? { updatedAt: results.updatedAt, source: results.source }
+  );
 
   if (!entries.length && isFetchingLeaderboard) {
     return `
@@ -687,9 +666,9 @@ function renderLeaderboard() {
       }
       ${
         isLiveResultsEnabled() && hasKnockoutResults
-          ? `<p class="muted">Knockout scoring live — ${koFinished}/${KNOCKOUT_MATCHES.length} results in · includes +4 pt baseline for Matches 73–76</p>`
+          ? `<p class="muted">Knockout scores locked in site deploy · ${koFinished}/${KNOCKOUT_MATCHES.length} results scored · includes +4 pt baseline for Matches 73–76</p>`
           : !hasKnockoutResults
-            ? '<p class="muted">Knockout points update as results come in from the live API.</p>'
+            ? '<p class="muted">Knockout points update with each site deploy.</p>'
             : ''
       }
       <table class="score-table">
@@ -733,16 +712,6 @@ function renderLeaderboard() {
                 <div class="leaderboard-details-inner">
                   <p class="muted player-picks-heading">Group stage picks</p>
                   ${renderPlayerGroupPicks(row.groups)}
-                  ${
-                    countKnockoutPicks(row.knockout)
-                      ? `<p class="muted player-picks-heading" style="margin-top:1rem">Knockout picks</p>${renderPlayerKnockoutPicks(row.knockout)}`
-                      : ''
-                  }
-                  ${
-                    formatFinalScorePick(row.finalScore, row.knockout?.final)
-                      ? `<p class="muted" style="margin-top:0.75rem">Final score pick: ${formatFinalScorePick(row.finalScore, row.knockout?.final)}</p>`
-                      : ''
-                  }
                 </div>
               </td>
             </tr>`;
@@ -974,9 +943,10 @@ function bindEvents() {
     render();
   });
 
-  document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
-    refreshLiveResults(true);
+  document.getElementById('refresh-leaderboard')?.addEventListener('click', async () => {
+    await refreshLiveResults(true);
     refreshLeaderboard(true);
+    showToast('Leaderboard refreshed.');
   });
 
   document.querySelectorAll('[data-leaderboard-toggle]').forEach((row) => {
