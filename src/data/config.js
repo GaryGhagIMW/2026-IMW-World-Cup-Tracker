@@ -134,6 +134,18 @@ export const GAME_CONFIG = {
     'r16-3': 'NOR',
     /** Match 92 — England 2-0 Switzerland (Jul 5, 2026) */
     'r16-4': 'ENG',
+    /** Match 93 — Portugal 0-1 Spain (Jul 6, 2026) */
+    'r16-5': 'ESP',
+    /** Match 94 — USA 1-4 Belgium (Jul 6, 2026) */
+    'r16-6': 'BEL',
+    /** Match 95 — Argentina 3-2 Egypt (Jul 7, 2026) */
+    'r16-7': 'ARG',
+    /** Match 96 — Switzerland 0-0 Colombia, SUI wins pens (Jul 7, 2026) */
+    'r16-8': 'SUI',
+    /** Match 97 — France 2-0 Morocco (Jul 9, 2026) */
+    'qf-1': 'FRA',
+    /** Match 98 — Spain 2-1 Belgium (Jul 10, 2026) */
+    'qf-2': 'ESP',
   },
 
   /**

@@ -380,7 +380,14 @@ function resolveDefaultBracketViewerKey(entries) {
   return entryViewerKey(withPicks ?? entries[0]);
 }
 
-function renderBracketViewerTeam(code, isHighlight, { compact = false, highlightClass = 'is-pick' } = {}) {
+function getPlayerPickHighlightClass(teamCode, playerPick, actualResult) {
+  if (!teamCode || !playerPick || playerPick !== teamCode) return '';
+  if (!actualResult) return 'is-pick-pending';
+  if (playerPick === actualResult) return 'is-pick-correct';
+  return 'is-pick-wrong';
+}
+
+function renderBracketViewerTeam(code, highlightClass = '', { compact = false } = {}) {
   if (!code) {
     return `<div class="bracket-viewer-team muted${compact ? ' bracket-viewer-team--compact' : ''}"><span>—</span></div>`;
   }
@@ -388,7 +395,7 @@ function renderBracketViewerTeam(code, isHighlight, { compact = false, highlight
   const name = getTeamName(code);
   const flagSize = compact ? 'width="18" height="13"' : 'width="24" height="18"';
   return `
-    <div class="bracket-viewer-team${isHighlight ? ` ${highlightClass}` : ''}${compact ? ' bracket-viewer-team--compact' : ''}" title="${name}">
+    <div class="bracket-viewer-team${highlightClass ? ` ${highlightClass}` : ''}${compact ? ' bracket-viewer-team--compact' : ''}" title="${name}">
       ${flag ? `<img class="bracket-viewer-flag" src="${flag}" alt="" ${flagSize} loading="lazy" />` : ''}
       <span class="bracket-viewer-team-name">${name}</span>
     </div>`;
@@ -398,10 +405,23 @@ function renderBracketViewerMatch(
   match,
   bracketContext,
   winnersByMatch,
-  { compact = false, highlightClass = 'is-pick' } = {}
+  { compact = false, highlightClass = 'is-pick', resultsByMatch = null } = {}
 ) {
   const { home, away } = resolveMatchParticipants(match, bracketContext);
-  const winner = winnersByMatch[match.id] ?? '';
+  const playerPick = winnersByMatch[match.id] ?? '';
+  const actualResult = resultsByMatch?.[match.id] ?? '';
+
+  const homeHighlight = resultsByMatch
+    ? getPlayerPickHighlightClass(home.code, playerPick, actualResult)
+    : playerPick === home.code
+      ? highlightClass
+      : '';
+  const awayHighlight = resultsByMatch
+    ? getPlayerPickHighlightClass(away.code, playerPick, actualResult)
+    : playerPick === away.code
+      ? highlightClass
+      : '';
+
   const matchTag = match.label.replace('Match ', 'M');
 
   if (compact) {
@@ -409,8 +429,8 @@ function renderBracketViewerMatch(
     <article class="bracket-viewer-match bracket-viewer-match--compact" title="${match.description}">
       <div class="bracket-viewer-match-label">${matchTag}</div>
       <div class="bracket-viewer-matchup">
-        ${renderBracketViewerTeam(home.code, winner === home.code, { compact: true, highlightClass })}
-        ${renderBracketViewerTeam(away.code, winner === away.code, { compact: true, highlightClass })}
+        ${renderBracketViewerTeam(home.code, homeHighlight, { compact: true })}
+        ${renderBracketViewerTeam(away.code, awayHighlight, { compact: true })}
       </div>
     </article>`;
   }
@@ -420,9 +440,9 @@ function renderBracketViewerMatch(
       <div class="bracket-viewer-match-label">${match.label}</div>
       <p class="muted bracket-viewer-desc">${match.description}</p>
       <div class="bracket-viewer-matchup">
-        ${renderBracketViewerTeam(home.code, winner === home.code, { highlightClass })}
+        ${renderBracketViewerTeam(home.code, homeHighlight)}
         <span class="bracket-viewer-vs">vs</span>
-        ${renderBracketViewerTeam(away.code, winner === away.code, { highlightClass })}
+        ${renderBracketViewerTeam(away.code, awayHighlight)}
       </div>
     </article>`;
 }
@@ -430,6 +450,7 @@ function renderBracketViewerMatch(
 function renderBracketFunnel({
   bracketContext,
   winnersByMatch,
+  resultsByMatch = null,
   highlightClass = 'is-pick',
   ariaLabel = 'Knockout bracket funnel',
 }) {
@@ -450,6 +471,7 @@ function renderBracketFunnel({
                   renderBracketViewerMatch(match, bracketContext, winnersByMatch, {
                     compact: true,
                     highlightClass,
+                    resultsByMatch,
                   })
                 )
                 .join('')}
@@ -513,7 +535,7 @@ function renderKnockout() {
   return `
     <section class="panel knockout-viewer-panel">
       <h2>Bracket viewer</h2>
-      <p class="muted">Select a player to view their knockout bracket. Each round is one row — wide at the top (Round of 32), narrowing to the Final. Gold highlight = their pick to win.</p>
+      <p class="muted">Select a player to view their knockout bracket. Each round is one row — wide at the top (Round of 32), narrowing to the Final. <span class="bracket-legend"><span class="bracket-legend-swatch is-pick-pending">Pending</span> <span class="bracket-legend-swatch is-pick-correct">Correct</span> <span class="bracket-legend-swatch is-pick-wrong">Wrong</span></span></p>
 
       <label class="bracket-viewer-select">
         Player
@@ -542,7 +564,7 @@ function renderKnockout() {
       ${renderBracketFunnel({
         bracketContext,
         winnersByMatch: knockout,
-        highlightClass: 'is-pick',
+        resultsByMatch: effectiveResults.knockout ?? {},
         ariaLabel: 'Player knockout bracket funnel',
       })}
     </section>`;

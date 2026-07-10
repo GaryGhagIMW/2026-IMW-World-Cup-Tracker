@@ -1283,7 +1283,31 @@ footer a:hover {
   border: 1px solid rgba(212, 160, 23, 0.35);
 }
 
-.bracket-viewer-team.is-pick .bracket-viewer-team-name {
+.bracket-viewer-team.is-pick-pending {
+  color: var(--imw-blue-dark);
+  font-weight: 700;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(202, 138, 4, 0.45);
+}
+
+.bracket-viewer-team.is-pick-correct {
+  color: var(--imw-blue-dark);
+  font-weight: 700;
+  background: rgba(34, 139, 84, 0.14);
+  border: 1px solid rgba(34, 139, 84, 0.4);
+}
+
+.bracket-viewer-team.is-pick-wrong {
+  color: var(--imw-blue-dark);
+  font-weight: 700;
+  background: rgba(197, 48, 48, 0.12);
+  border: 1px solid rgba(197, 48, 48, 0.4);
+}
+
+.bracket-viewer-team.is-pick .bracket-viewer-team-name,
+.bracket-viewer-team.is-pick-pending .bracket-viewer-team-name,
+.bracket-viewer-team.is-pick-correct .bracket-viewer-team-name,
+.bracket-viewer-team.is-pick-wrong .bracket-viewer-team-name {
   font-weight: 700;
 }
 
@@ -1302,6 +1326,23 @@ footer a:hover {
   flex-shrink: 0;
   border-radius: 2px;
   object-fit: cover;
+}
+
+.bracket-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-left: 0.25rem;
+}
+
+.bracket-legend-swatch {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 @media (max-width: 720px) {
