@@ -688,7 +688,7 @@ function renderLeaderboard() {
       }
       ${
         isLiveResultsEnabled() && hasKnockoutResults
-          ? `<p class="muted">Knockout scores locked in site deploy · ${koFinished}/${KNOCKOUT_MATCHES.length} results scored · includes +4 pt baseline for Matches 73–76</p>`
+          ? `<p class="muted">Knockout scores locked in site deploy · ${koFinished}/${KNOCKOUT_MATCHES.length} results scored</p>`
           : !hasKnockoutResults
             ? '<p class="muted">Knockout points update with each site deploy.</p>'
             : ''
