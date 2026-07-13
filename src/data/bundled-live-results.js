@@ -4,7 +4,7 @@
  */
 export const BUNDLED_LIVE_RESULTS = {
   "source": "worldcup26.ir",
-  "updatedAt": "2026-07-10T21:27:30.504Z",
+  "updatedAt": "2026-07-13T19:09:24.054Z",
   "groupsWithMatches": 12,
   "groups": {
     "H": [
@@ -927,8 +927,8 @@ export const BUNDLED_LIVE_RESULTS = {
     "r16-8": "SUI",
     "qf-1": "FRA",
     "qf-2": "ESP",
-    "qf-3": "",
-    "qf-4": "",
+    "qf-3": "ENG",
+    "qf-4": "ARG",
     "sf-1": "",
     "sf-2": "",
     "final": ""
@@ -937,5 +937,5 @@ export const BUNDLED_LIVE_RESULTS = {
     "winnerGoals": null,
     "loserGoals": null
   },
-  "knockoutMatchesFinished": 26
+  "knockoutMatchesFinished": 28
 };

@@ -146,6 +146,10 @@ export const GAME_CONFIG = {
     'qf-1': 'FRA',
     /** Match 98 — Spain 2-1 Belgium (Jul 10, 2026) */
     'qf-2': 'ESP',
+    /** Match 99 — Norway 1-2 England (Jul 11, 2026) */
+    'qf-3': 'ENG',
+    /** Match 100 — Argentina 3-1 Switzerland (Jul 11, 2026) */
+    'qf-4': 'ARG',
   },
 
   /**

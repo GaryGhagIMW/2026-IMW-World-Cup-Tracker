@@ -69,14 +69,22 @@ export function getLockedKnockoutResults() {
   return GAME_CONFIG.lockedKnockoutResults ?? {};
 }
 
+/** Matches 73–76 only — submitted picks replaced for everyone (deadline fairness). */
+export function getFairnessLockedMatchIds() {
+  return GAME_CONFIG.knockoutFairnessAutoCredit ?? [];
+}
+
 export function isMatchPickLocked(matchId) {
-  return Object.prototype.hasOwnProperty.call(getLockedKnockoutResults(), matchId);
+  return getFairnessLockedMatchIds().includes(matchId);
 }
 
 export function applyLockedKnockoutPicks(knockout = {}) {
   const next = { ...createEmptyKnockoutPredictions(), ...knockout };
-  for (const [matchId, winner] of Object.entries(getLockedKnockoutResults())) {
-    next[matchId] = winner;
+  const official = getLockedKnockoutResults();
+  for (const matchId of getFairnessLockedMatchIds()) {
+    if (official[matchId]) {
+      next[matchId] = official[matchId];
+    }
   }
   return next;
 }
