@@ -3,6 +3,7 @@ import { GROUPS, getTeamName, getTeamFlagUrl } from './data/groups.js';
 import { KNOCKOUT_MATCHES } from './data/knockout.js';
 import {
   formatDateRange,
+  formatDate,
   formatWindowRange,
   formatWindowDeadline,
   getWindowStatus,
@@ -56,7 +57,6 @@ import {
   countKnockoutResults,
   isLiveResultsEnabled,
 } from './lib/live-results.js';
-import { assetUrl } from './lib/base.js';
 import {
   resolveMatchParticipants,
   getBracketContext,
@@ -70,7 +70,79 @@ import {
   getLockedKnockoutResults,
 } from './lib/knockout-bracket.js';
 
-const LOGO_URL = assetUrl('assets/imw-logo-white.png');
+function renderFinalShowdownBar() {
+  const espFlag = getTeamFlagUrl('ESP');
+  const argFlag = getTeamFlagUrl('ARG');
+  const finalDate = formatDate(GAME_CONFIG.finalDate);
+
+  return `
+    <div class="final-showdown-bar" role="banner">
+      <div class="final-showdown-bar__stripe final-showdown-bar__stripe--arg" aria-hidden="true"></div>
+      <div class="final-showdown-bar__inner">
+        <div class="final-showdown-team final-showdown-team--arg">
+          ${argFlag ? `<img class="final-showdown-flag" src="${argFlag}" alt="" width="48" height="36" />` : ''}
+          <div class="final-showdown-team-text">
+            <span class="final-showdown-team-name">Argentina</span>
+            <span class="final-showdown-team-sub">Semi-final winners</span>
+          </div>
+        </div>
+        <div class="final-showdown-center">
+          <span class="final-showdown-kicker">2026 FIFA World Cup Final</span>
+          <span class="final-showdown-vs">VS</span>
+          <span class="final-showdown-date">${finalDate} · MetLife Stadium</span>
+        </div>
+        <div class="final-showdown-team final-showdown-team--esp">
+          <div class="final-showdown-team-text final-showdown-team-text--right">
+            <span class="final-showdown-team-name">Spain</span>
+            <span class="final-showdown-team-sub">Semi-final winners</span>
+          </div>
+          ${espFlag ? `<img class="final-showdown-flag" src="${espFlag}" alt="" width="48" height="36" />` : ''}
+        </div>
+      </div>
+      <div class="final-showdown-bar__stripe final-showdown-bar__stripe--esp" aria-hidden="true"></div>
+    </div>`;
+}
+
+function renderGrandFinalCard(bracketContext, winnersByMatch, { resultsMode = false } = {}) {
+  const finalMatch = KNOCKOUT_MATCHES.find((m) => m.id === 'final');
+  if (!finalMatch) return '';
+
+  const { home, away } = resolveMatchParticipants(finalMatch, bracketContext);
+  const espCode = 'ESP';
+  const argCode = 'ARG';
+  const homeCode = home.code || espCode;
+  const awayCode = away.code || argCode;
+  const playerPick = winnersByMatch?.final ?? '';
+  const actualResult = resultsMode ? winnersByMatch?.final ?? '' : '';
+
+  const renderSide = (code, sideClass) => {
+    const flag = getTeamFlagUrl(code);
+    const name = getTeamName(code);
+    const highlight = resultsMode
+      ? code === actualResult
+        ? 'is-result'
+        : ''
+      : playerPick === code
+        ? 'is-pick-pending'
+        : '';
+    return `
+      <div class="grand-final-side ${sideClass} ${highlight}">
+        ${flag ? `<img class="grand-final-flag" src="${flag}" alt="" width="72" height="54" loading="lazy" />` : ''}
+        <span class="grand-final-name">${name}</span>
+      </div>`;
+  };
+
+  return `
+    <section class="grand-final-card" aria-label="World Cup Final matchup">
+      <p class="grand-final-eyebrow">Match 104 · Winner takes the trophy</p>
+      <div class="grand-final-matchup">
+        ${renderSide(homeCode, 'grand-final-side--home')}
+        <div class="grand-final-vs">VS</div>
+        ${renderSide(awayCode, 'grand-final-side--away')}
+      </div>
+      <p class="grand-final-footnote muted">Official bracket is set — Spain and Argentina meet in the Final.</p>
+    </section>`;
+}
 
 let state = loadState();
 let activeTab = 'home';
@@ -250,9 +322,9 @@ function renderHome() {
     'Browse player picks on <strong>Bracket</strong> · live official results on <strong>Standings</strong>.';
 
   return `
-    <section class="hero-banner">
-      <span class="phase-badge">Knockout stage</span>
-      <h1>2026 FIFA World Cup Pool</h1>
+    <section class="hero-banner hero-banner--final">
+      <span class="phase-badge phase-badge--final-round">Final Round</span>
+      <h1>Argentina vs Spain</h1>
       <p class="tagline">${GAME_CONFIG.tagline}</p>
       <p class="subtitle">${GAME_CONFIG.subtitle}</p>
     </section>
@@ -463,7 +535,7 @@ function renderBracketFunnel({
             const connectorPct = BRACKET_FUNNEL_CONNECTOR[round];
             return `
           ${connectorPct != null ? `<div class="bracket-funnel-connector" style="--connector-width: ${connectorPct}%" aria-hidden="true"></div>` : ''}
-          <section class="bracket-viewer-round" data-round="${round}">
+          <section class="bracket-viewer-round bracket-viewer-round--grand-final" data-round="${round}">
             <h3 class="bracket-viewer-round-title">${ROUND_LABELS[round]}</h3>
             <div class="bracket-viewer-round-matches">
               ${matches
@@ -535,7 +607,9 @@ function renderKnockout() {
   return `
     <section class="panel knockout-viewer-panel">
       <h2>Bracket viewer</h2>
-      <p class="muted">Select a player to view their knockout bracket. Each round is one row — wide at the top (Round of 32), narrowing to the Final. <span class="bracket-legend"><span class="bracket-legend-swatch is-pick-pending">Pending</span> <span class="bracket-legend-swatch is-pick-correct">Correct</span> <span class="bracket-legend-swatch is-pick-wrong">Wrong</span></span></p>
+      <p class="muted">Select a player to view their knockout bracket. The Final is <strong>Spain vs Argentina</strong> on ${formatDate(GAME_CONFIG.finalDate)}. <span class="bracket-legend"><span class="bracket-legend-swatch is-pick-pending">Pending</span> <span class="bracket-legend-swatch is-pick-correct">Correct</span> <span class="bracket-legend-swatch is-pick-wrong">Wrong</span></span></p>
+
+      ${renderGrandFinalCard(bracketContext, knockout)}
 
       <label class="bracket-viewer-select">
         Player
@@ -581,7 +655,7 @@ function renderStandings() {
   return `
     <section class="panel knockout-viewer-panel">
       <h2>Knockout standings</h2>
-      <p class="muted">Official knockout bracket — results flow through each round as games finish. Green highlight = match winner.</p>
+      <p class="muted">Official knockout bracket — <strong>Spain vs Argentina</strong> in the Final (${formatDate(GAME_CONFIG.finalDate)}). Green highlight = match winner.</p>
       ${
         isLiveResultsEnabled()
           ? `<p class="muted">${resultsLabel}</p>`
@@ -597,6 +671,8 @@ function renderStandings() {
           ? `<p class="muted" style="margin-top:0.75rem">Final result: <strong>${finalScore}</strong></p>`
           : ''
       }
+
+      ${renderGrandFinalCard(bracketContext, winners, { resultsMode: true })}
 
       ${renderBracketFunnel({
         bracketContext,
@@ -892,14 +968,7 @@ function render() {
 
   app.innerHTML = `
     <div class="site-sticky-header">
-      <div class="site-topbar">
-        <div class="site-topbar-inner">
-          <a href="${GAME_CONFIG.website}" target="_blank" rel="noopener">
-            <img src="${LOGO_URL}" alt="IMW Industries" width="120" height="42" />
-          </a>
-          <a class="org-link" href="${GAME_CONFIG.website}" target="_blank" rel="noopener">imw.ca</a>
-        </div>
-      </div>
+      ${renderFinalShowdownBar()}
 
       <nav class="tabs">
         ${tabs
@@ -929,7 +998,7 @@ function render() {
 
     <footer>
       <a href="${GAME_CONFIG.website}" target="_blank" rel="noopener">${GAME_CONFIG.organization}</a>
-      · FIFA World Cup 2026 · Canada / Mexico / USA
+      · Argentina vs Spain · FIFA World Cup 2026 Final
     </footer>
   `;
 

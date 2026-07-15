@@ -1,8 +1,8 @@
 /** Game rules, scoring weights, branding, and submission settings. */
 export const GAME_CONFIG = {
-  title: '2026 World Cup Pool',
-  subtitle: 'IMW Industries · EEC activity',
-  tagline: 'Driven by knowledge, fueled by Experience',
+  title: '2026 World Cup Final',
+  subtitle: 'IMW Industries · World Cup Pool',
+  tagline: 'Argentina vs Spain · Sunday, July 19',
   organization: 'IMW Industries',
   website: 'https://www.imw.ca',
 
@@ -150,6 +150,10 @@ export const GAME_CONFIG = {
     'qf-3': 'ENG',
     /** Match 100 — Argentina 3-1 Switzerland (Jul 11, 2026) */
     'qf-4': 'ARG',
+    /** Match 101 — Spain 2-0 France (Jul 14, 2026) */
+    'sf-1': 'ESP',
+    /** Match 102 — Argentina 1-0 England (Jul 15, 2026) */
+    'sf-2': 'ARG',
   },
 
   /**

@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <circle cx="16" cy="16" r="14" fill="#1a472a"/>
-  <circle cx="16" cy="16" r="10" stroke="#fff" stroke-width="1.5" fill="none"/>
-  <path d="M16 6v20M6 16h20M9.5 9.5l13 13M22.5 9.5l-13 13" stroke="#fff" stroke-width="1" opacity="0.7"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="16" height="32" fill="#74ACDF"/>
+  <rect x="16" width="16" height="32" fill="#AA151B"/>
+  <rect x="16" y="10" width="16" height="12" fill="#F1BF00"/>
+  <text x="16" y="18" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="700" fill="#fff">VS</text>
 </svg>
