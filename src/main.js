@@ -57,6 +57,7 @@ import {
   countKnockoutResults,
   isLiveResultsEnabled,
 } from './lib/live-results.js';
+import { assetUrl } from './lib/base.js';
 import {
   resolveMatchParticipants,
   getBracketContext,
@@ -69,6 +70,18 @@ import {
   clearDownstreamPicks,
   getLockedKnockoutResults,
 } from './lib/knockout-bracket.js';
+
+function applySiteBackground() {
+  const root = document.documentElement;
+  root.style.setProperty(
+    '--bg-messi',
+    `url("${assetUrl('assets/backgrounds/messi.jpg')}")`
+  );
+  root.style.setProperty(
+    '--bg-yamal',
+    `url("${assetUrl('assets/backgrounds/yamal.jpg')}")`
+  );
+}
 
 function renderFinalShowdownBar() {
   const espFlag = getTeamFlagUrl('ESP');
@@ -1305,6 +1318,7 @@ document.addEventListener('visibilitychange', () => {
   if (activeTab === 'leaderboard') refreshLeaderboard(true);
 });
 
+applySiteBackground();
 render();
 refreshLiveResults(true);
 refreshLeaderboard(true);
