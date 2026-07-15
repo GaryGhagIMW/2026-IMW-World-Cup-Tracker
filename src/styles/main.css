@@ -35,6 +35,7 @@
   --radius: 10px;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
   --shadow-panel: 0 12px 40px rgba(0, 0, 0, 0.24);
+  --content-max: 920px;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   color: var(--text-on-dark);
   background: var(--bg);
@@ -61,8 +62,8 @@ body::before {
   inset: 0;
   z-index: -2;
   background-image: var(--bg-messi), var(--bg-yamal);
-  background-size: 50% 100%, 50% 100%;
-  background-position: left center, right center;
+  background-size: clamp(300px, 38vw, 520px) 100%, clamp(300px, 38vw, 520px) 100%;
+  background-position: 0% center, 100% center;
   background-repeat: no-repeat;
 }
 
@@ -74,19 +75,21 @@ body::after {
   background:
     linear-gradient(
       90deg,
-      rgba(10, 36, 58, 0.82) 0%,
-      rgba(18, 18, 26, 0.58) 48%,
-      rgba(18, 18, 26, 0.58) 52%,
-      rgba(88, 10, 24, 0.82) 100%
+      rgba(10, 36, 58, 0.45) 0%,
+      rgba(10, 36, 58, 0.72) 18%,
+      rgba(18, 18, 26, 0.82) 36%,
+      rgba(18, 18, 26, 0.82) 64%,
+      rgba(88, 10, 24, 0.72) 82%,
+      rgba(88, 10, 24, 0.45) 100%
     ),
-    linear-gradient(180deg, rgba(20, 24, 32, 0.25) 0%, rgba(20, 24, 32, 0.62) 100%);
+    linear-gradient(180deg, rgba(20, 24, 32, 0.2) 0%, rgba(20, 24, 32, 0.55) 100%);
   pointer-events: none;
 }
 
 @media (max-width: 720px) {
   body::before {
-    background-size: cover, cover;
-    background-position: 25% center, 75% center;
+    background-size: 52vw 100%, 52vw 100%;
+    background-position: 0% center, 100% center;
   }
 
   body::after {
@@ -102,7 +105,7 @@ body::after {
 }
 
 #app {
-  max-width: 1180px;
+  max-width: var(--content-max);
   margin: 0 auto;
   padding: 0 1.25rem 2rem;
 }
@@ -133,7 +136,7 @@ body::after {
 }
 
 .final-showdown-bar__inner {
-  max-width: 1180px;
+  max-width: var(--content-max);
   margin: 0 auto;
   padding: 0.9rem 1.25rem;
   display: grid;
@@ -242,7 +245,7 @@ body::after {
 }
 
 .site-topbar-inner {
-  max-width: 1180px;
+  max-width: var(--content-max);
   margin: 0 auto;
   display: flex;
   align-items: center;
