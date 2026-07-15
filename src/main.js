@@ -622,8 +622,6 @@ function renderKnockout() {
       <h2>Bracket viewer</h2>
       <p class="muted">Select a player to view their knockout bracket. The Final is <strong>Spain vs Argentina</strong> on ${formatDate(GAME_CONFIG.finalDate)}. <span class="bracket-legend"><span class="bracket-legend-swatch is-pick-pending">Pending</span> <span class="bracket-legend-swatch is-pick-correct">Correct</span> <span class="bracket-legend-swatch is-pick-wrong">Wrong</span></span></p>
 
-      ${renderGrandFinalCard(bracketContext, knockout)}
-
       <label class="bracket-viewer-select">
         Player
         <select id="bracket-viewer-player">
