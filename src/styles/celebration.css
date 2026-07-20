@@ -1,0 +1,228 @@
+/* Celebration page — Mali wins, Spain World Cup backdrop */
+
+body.celebration-page {
+  background-color: #0a1018;
+}
+
+body.celebration-page::before {
+  background-image: var(--bg-spain-team);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+body.celebration-page::after {
+  background:
+    linear-gradient(180deg, rgba(8, 12, 20, 0.55) 0%, rgba(8, 12, 20, 0.82) 100%),
+    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(241, 191, 0, 0.18), transparent 60%);
+}
+
+.celebration-main {
+  position: relative;
+  z-index: 1;
+}
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -12px;
+  opacity: 0.85;
+  border-radius: 2px;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0.35;
+  }
+}
+
+.podium-stage {
+  text-align: center;
+  margin: 0 0 1.5rem;
+  padding: 2rem 1rem 1.25rem;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    180deg,
+    rgba(241, 191, 0, 0.22) 0%,
+    rgba(198, 11, 30, 0.12) 45%,
+    rgba(10, 16, 24, 0.55) 100%
+  );
+  border: 2px solid rgba(241, 191, 0, 0.55);
+  box-shadow:
+    0 0 40px rgba(241, 191, 0, 0.15),
+    0 16px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+}
+
+.podium-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--esp-gold);
+}
+
+.podium-title {
+  margin: 0;
+  font-family: 'Bebas Neue', 'Inter', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(241, 191, 0, 0.35);
+}
+
+.podium-subtitle {
+  margin: 0.65rem 0 1.5rem;
+  color: var(--muted-on-dark);
+  font-size: 0.95rem;
+}
+
+.podium-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.75rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.podium-stand {
+  flex: 1;
+  max-width: 220px;
+  display: grid;
+  gap: 0.25rem;
+  justify-items: center;
+  padding: 1rem 0.75rem 1.1rem;
+  border-radius: 12px 12px 8px 8px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: var(--text);
+}
+
+.podium-stand--first {
+  min-height: 11rem;
+  transform: translateY(-0.75rem);
+  border-color: var(--esp-gold);
+  background: linear-gradient(180deg, #fffef5 0%, #fff6cc 100%);
+  box-shadow:
+    0 0 32px rgba(241, 191, 0, 0.35),
+    0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.podium-stand--second {
+  min-height: 8.5rem;
+  border-color: #b8c4d0;
+  background: linear-gradient(180deg, #fff 0%, #eef2f7 100%);
+}
+
+.podium-stand--third {
+  min-height: 7rem;
+  border-color: #d4a574;
+  background: linear-gradient(180deg, #fff 0%, #fdf0e0 100%);
+}
+
+.podium-medal {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.podium-stand--first .podium-medal {
+  font-size: 2.75rem;
+}
+
+.podium-name {
+  margin: 0;
+  font-family: 'Bebas Neue', 'Inter', sans-serif;
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+}
+
+.podium-stand--first .podium-name {
+  font-size: 1.85rem;
+  color: var(--esp-red-dark);
+}
+
+.podium-score {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--esp-red);
+}
+
+.podium-breakdown {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.celebration-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(241, 191, 0, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.leaderboard-row--gold {
+  background: rgba(241, 191, 0, 0.14);
+}
+
+.leaderboard-row--silver {
+  background: rgba(184, 196, 208, 0.18);
+}
+
+.leaderboard-row--bronze {
+  background: rgba(212, 165, 116, 0.16);
+}
+
+.celebration-footer {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  text-align: center;
+  color: var(--muted-on-dark);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .podium-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .podium-stand--first {
+    order: -1;
+    transform: none;
+    min-height: auto;
+  }
+
+  .podium-stand--second,
+  .podium-stand--third {
+    min-height: auto;
+  }
+}

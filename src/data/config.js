@@ -1,8 +1,8 @@
 /** Game rules, scoring weights, branding, and submission settings. */
 export const GAME_CONFIG = {
-  title: '2026 World Cup Final',
-  subtitle: 'IMW Industries · World Cup Pool',
-  tagline: 'Argentina vs Spain · Sunday, July 19',
+  title: '2026 World Cup Pool — Champions',
+  subtitle: 'IMW Industries · Final standings',
+  tagline: 'Spain 1–0 Argentina · Mali Lombard wins the pool',
   organization: 'IMW Industries',
   website: 'https://www.imw.ca',
 
@@ -154,6 +154,8 @@ export const GAME_CONFIG = {
     'sf-1': 'ESP',
     /** Match 102 — Argentina 1-0 England (Jul 15, 2026) */
     'sf-2': 'ARG',
+    /** Match 104 — Spain 1-0 Argentina (Jul 19, 2026) */
+    'final': 'ESP',
   },
 
   /**
