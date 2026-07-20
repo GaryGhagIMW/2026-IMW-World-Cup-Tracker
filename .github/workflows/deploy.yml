@@ -1,11 +1,9 @@
 name: Deploy to GitHub Pages
 
+# Final deploy on push; no scheduled updates. Manual runs still available.
 on:
   push:
     branches: [main]
-  schedule:
-    # Fetch fresh standings and redeploy every 15 minutes (UTC).
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -15,7 +13,6 @@ permissions:
 
 concurrency:
   group: pages
-  # Avoid "Deployment failed, try again later" when push + cron overlap (actions/deploy-pages#418).
   cancel-in-progress: true
 
 jobs:
@@ -29,13 +26,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Fetch live group standings
-        run: node scripts/fetch-live-results.mjs
-        # Script never fails the job — keeps last-known standings when worldcup26.ir is down.
-
-      - name: Generate leaderboard knockout scores
-        run: node scripts/generate-knockout-scores.mjs
 
       - name: Install dependencies
         run: npm install
@@ -58,15 +48,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        continue-on-error: true
-
-      - name: Retry deploy (transient Pages backend failure)
-        id: deployment-retry
-        if: steps.deployment.outcome == 'failure'
-        uses: actions/deploy-pages@v4
-
-      - name: Verify deployment succeeded
-        if: steps.deployment.outcome == 'failure' && steps.deployment-retry.outcome == 'failure'
-        run: |
-          echo "GitHub Pages deploy failed after retry. See actions/deploy-pages#418."
-          exit 1

@@ -7,7 +7,7 @@ export const GAME_CONFIG = {
   website: 'https://www.imw.ca',
 
   /** Current app phase — sent with SharePoint / Excel submissions. */
-  phase: 'knockout',
+  phase: 'archived',
 
   adminPin: '22002266',
 
@@ -168,7 +168,7 @@ export const GAME_CONFIG = {
 
   /** Auto-fetch knockout results for live leaderboard scoring (see scripts/fetch-live-results.mjs). */
   liveResults: {
-    enabled: true,
+    enabled: false,
     provider: 'worldcup26.ir',
     /** Pull directly from the API in the browser (falls back to live-results.json). */
     fetchFromApi: true,
