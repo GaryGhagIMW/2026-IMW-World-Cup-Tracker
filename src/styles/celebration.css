@@ -174,6 +174,54 @@ body.celebration-page::after {
   color: var(--muted);
 }
 
+.group-stage-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(108, 172, 228, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+.group-stage-banner__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.group-stage-banner__text {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.group-stage-banner__kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--arg-sky-dark);
+}
+
+.group-stage-banner__title {
+  margin: 0;
+  font-family: 'Bebas Neue', 'Inter', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.group-stage-banner__sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .celebration-panel {
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(241, 191, 0, 0.35);

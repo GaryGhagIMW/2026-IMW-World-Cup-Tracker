@@ -74,6 +74,20 @@ function renderPodium(topThree) {
     </section>`;
 }
 
+function renderGroupStageBanner(groupWinner) {
+  if (!groupWinner) return '';
+  const maxGroup = getMaxGroupPoints();
+  return `
+    <section class="group-stage-banner" aria-label="Group stage winner">
+      <span class="group-stage-banner__icon" aria-hidden="true">🥇</span>
+      <div class="group-stage-banner__text">
+        <p class="group-stage-banner__kicker">Group stage champion</p>
+        <p class="group-stage-banner__title">${groupWinner.name} · ${groupWinner.groupPoints} pts</p>
+        <p class="group-stage-banner__sub">Top score in the group stage (${maxGroup} pts max)</p>
+      </div>
+    </section>`;
+}
+
 function leaderboardPlayerKey(row) {
   const email = (row.email ?? '').trim().toLowerCase();
   return email || row.name.trim().toLowerCase();
@@ -129,6 +143,9 @@ function renderLeaderboard() {
 
   const ranked = rankEntries(entries, results);
   const topThree = ranked.slice(0, 3);
+  const groupStageWinner = [...ranked].sort(
+    (a, b) => b.groupPoints - a.groupPoints || a.name.localeCompare(b.name)
+  )[0];
   const maxKnockout = getMaxKnockoutPoints();
   const koFinished = countKnockoutResults(results.knockout);
   const hasKnockoutResults = hasKnockoutScoringResults(results);
@@ -136,6 +153,7 @@ function renderLeaderboard() {
   return `
     ${renderConfetti()}
     ${renderPodium(topThree)}
+    ${renderGroupStageBanner(groupStageWinner)}
 
     <section class="panel celebration-panel">
       <div class="leaderboard-header">
